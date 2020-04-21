@@ -76,7 +76,6 @@ res.header('authToken', token).send(token);
 
 console.log(token)
 
-
 });
 
 
