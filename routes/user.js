@@ -7,6 +7,7 @@ const db = require('../database/db');
 const User= require('../models/users');
 const {registerValidation, loginValidation} = require('./validation');
 const verify = require('./verifyToken');
+const Location = require('../models/location')
 
 
 router.post('/register', async (req, res) => {
@@ -51,6 +52,71 @@ router.post('/register', async (req, res) => {
 
 });
 
+router.post('/location', async (req, res) => {
+
+    console.log(req.body)
+
+    const userExisst = await Location.findOne({
+         where: {
+             userId: req.body.id
+            }
+        })
+        
+        if(userExisst){
+            Location.update(
+                {
+                    long: req.body.long,
+                    lat: req.body.lat 
+                }, 
+                {
+                    where: {
+                        userId: req.body.id
+                    }
+                }).then( responseId => {
+                    res.send("updated")
+                    console.log("location Id!!!!!!!!!!!", responseId)
+                    User.update({
+                            locationId: userExisst.dataValues.id
+                    },
+                    {
+                        where: {
+                            id: req.body.id
+                        }
+                    })
+                }).error(function(err) { 
+                    console.log("location update failed !", err);       
+                });
+        }
+        else {
+            console.log("no user found to update")
+            const location = new Location ({
+                userId: req.body.id,
+                long:  req.body.long,
+                lat: req.body.lat,    
+            })
+            //save the user to db & send result 
+            try {
+                const savedLcoation = await location.save()
+                .then(function(result){
+                    res.send("new user location updated")
+                    console.log("new user location saved", result.dataValues)
+                    User.update({
+                        locationId: result.dataValues.id
+                },
+                {
+                    where: {
+                        id: result.dataValues.userId
+                    }
+                })
+                    
+                });    
+            } catch (error) {
+                console.log(error)
+                console.log("did not save new user location")
+            }
+        }
+    
+})
 
 router.post('/login', async (req, res) => {
 

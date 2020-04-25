@@ -1,11 +1,14 @@
 const Sequelize = require('sequelize');
 const db = require('../database/db');
 
-module.exports = db.define('Location',  {
+module.exports = db.define('location',  {
 
     id: {
         type: Sequelize.INTEGER(11),
         allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+
     },
 
     long: {
@@ -20,7 +23,7 @@ module.exports = db.define('Location',  {
 
     name: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
     },
 
     userId: {
