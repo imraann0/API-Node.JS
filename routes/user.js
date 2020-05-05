@@ -8,6 +8,10 @@ const User= require('../models/users');
 const {registerValidation, loginValidation} = require('./validation');
 const verify = require('./verifyToken');
 const Location = require('../models/location')
+const fs = require('fs');
+const multer = require('multer');
+// const test = require("../uploads")
+
 
 
 router.post('/register', async (req, res) => {
@@ -185,6 +189,134 @@ router.get ('/logged', async (req, res) => {
 
 
 });
+
+
+router.post ('/bio', async (req, res) => {
+
+
+    const UpdatedBio = await User.update(
+        {
+            bio: req.body.bio
+        }, 
+        {
+            where: {
+                id: req.body.id
+            }
+        }).then(response => {
+            res.json({
+                updatedBio: req.body.bio
+            })
+        })
+
+
+});
+
+router.get('/logout', async (req, res) => {
+
+res.send("Logged out")
+})
+
+
+
+var storage = multer.diskStorage({
+
+    destination: function(req, file, cb) {
+        cb(null, './uploads/');
+     },
+    filename: function (req, file, cb) {
+        cb(null , file.originalname);
+    }
+});
+
+const fileFilter = (req,file, cb)=> {
+    // reject file 
+
+    if(file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'){
+        cb(null, true);
+    } else{
+        cb(new Error('error'), null, true);
+    }
+
+}
+var upload = multer({ 
+    storage: storage, 
+    limits: {
+    fileSize: 1024*1024*5
+    }, 
+    fileFilter: fileFilter
+});
+
+router.post('/upload', upload.single('userImage'),async (req, res) => {
+
+    try {
+        res.send(req.file);
+      }catch(err) {
+        res.send(400);
+      }
+
+      console.log(req.file.path)
+
+      const filepath = req.file.path
+    
+    const user = await User.findOne({ where: {id: req.body.id}});
+
+    if (user) {
+
+        await User.update(
+            {
+                displayPic: filepath
+            }, 
+            {
+                where: {
+                    id: req.body.id
+                }
+            })
+
+    }
+
+})
+
+// router.get('/image',async (req, res) => {
+
+//     try {
+//         const token = req.header("authToken")
+//         if(!token) {
+//             console.log("no token found here")
+//         }
+
+//         var decoded = jwt_decode(token);   
+//         console.log(decoded.id) 
+        
+//         const user = await 
+//             User.findOne(
+//             { where: 
+//                 {id: decoded.id}
+//             }).then(result => {
+//                 res.json({
+//                     User: result
+//                 })
+//         })
+//     }catch (error) {
+
+//         console.log(error.message)
+//         console.log("invalid token")
+//         res.send("Invalid Token")
+//     }
+
+
+
+
+
+
+// })
+
+
+
+
+
+
+
+
 
 module.exports = router;
 

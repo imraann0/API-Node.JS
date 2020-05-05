@@ -30,6 +30,8 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.use('/uploads',express.static('uploads'));
+
 const db = require('./database/db');
 
 db.authenticate()
