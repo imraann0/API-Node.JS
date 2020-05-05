@@ -1,34 +1,31 @@
-const Sequelize = require('sequelize');
-const db = require('../database/db');
+const Sequelize = require('sequelize')
+const db = require('../database/db')
 
-module.exports = db.define('location',  {
+module.exports = db.define('location', {
+  id: {
+    type: Sequelize.INTEGER(11),
+    allowNull: false,
+    autoIncrement: true,
+    primaryKey: true
+  },
 
-    id: {
-        type: Sequelize.INTEGER(11),
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
+  long: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
 
-    },
+  lat: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
 
-    long: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: true
+  },
 
-    lat: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
-
-    name: {
-        type: Sequelize.STRING,
-        allowNull: true,
-    },
-
-    userId: {
-        type: Sequelize.INTEGER(11),
-        allowNull: false,
-    },
-
-});
+  userId: {
+    type: Sequelize.INTEGER(11),
+    allowNull: false
+  }
+})
