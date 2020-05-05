@@ -1,47 +1,43 @@
-const Sequelize = require('sequelize');
-const db = require('../database/db');
+const Sequelize = require('sequelize')
+const db = require('../database/db')
 
-module.exports = db.define('HalalFood',  {
+module.exports = db.define('HalalFood', {
+  id: {
+    type: Sequelize.INTEGER(11),
+    allowNull: false
+  },
 
-    id: {
-        type: Sequelize.INTEGER(11),
-        allowNull: false,
-    },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
 
-    name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
+  pictures: {
+    type: Sequelize.STRING
+  },
 
-    pictures: {
-        type: Sequelize.STRING,
-    },
+  description: {
+    type: Sequelize.STRING
+  },
 
-    description: {
-        type: Sequelize.STRING,
-    },
+  locationId: {
+    type: Sequelize.INTEGER(11),
+    allowNull: false
+  },
 
-    locationId: {
-        type: Sequelize.INTEGER(11),
-        allowNull: false,
-    },
+  tags: {
+    type: Sequelize.STRING
+  },
 
-    tags: {
-        type: Sequelize.STRING,
-    },
+  userRating: {
+    type: Sequelize.INTEGER(11)
+  },
 
-    userRating: {
-        type: Sequelize.INTEGER(11),
-    },
+  comments: {
+    type: Sequelize.STRING
+  },
 
-    comments: {
-        type: Sequelize.STRING,
-    },
-
-    userId: {
-        type: Sequelize.INTEGER(11),
-    },
-
-
-
-});
+  userId: {
+    type: Sequelize.INTEGER(11)
+  }
+})

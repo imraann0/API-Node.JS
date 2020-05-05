@@ -1,61 +1,57 @@
-'use strict';
+'use strict'
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('Mosques', {
-
       id: {
         type: Sequelize.INTEGER(11),
-        allowNull: false,
-    },
+        allowNull: false
+      },
 
-    name: {
+      name: {
         type: Sequelize.STRING,
-        allowNull: false,
-    },
+        allowNull: false
+      },
 
-    pictures: {
-        type: Sequelize.STRING,
-    },
+      pictures: {
+        type: Sequelize.STRING
+      },
 
-    description: {
-        type: Sequelize.STRING,
-    },
+      description: {
+        type: Sequelize.STRING
+      },
 
-    locationId: {
+      locationId: {
         type: Sequelize.INTEGER(11),
-        allowNull: false,
-    },
+        allowNull: false
+      },
 
-    facilities: {
-        type: Sequelize.STRING,
-    },
+      facilities: {
+        type: Sequelize.STRING
+      },
 
-    userRating: {
-        type: Sequelize.INTEGER(11),
-    },
+      userRating: {
+        type: Sequelize.INTEGER(11)
+      },
 
-    comments: {
-        type: Sequelize.STRING,
-    },
+      comments: {
+        type: Sequelize.STRING
+      },
 
-    tags: {
-        type: Sequelize.STRING,
-    },
+      tags: {
+        type: Sequelize.STRING
+      },
 
-    userId: {
-        type: Sequelize.INTEGER(11),
-    },
+      userId: {
+        type: Sequelize.INTEGER(11)
+      },
 
-
-    createdAt: Sequelize.DATE,
-    updatedAt: Sequelize.DATE
-
-    });
-
+      createdAt: Sequelize.DATE,
+      updatedAt: Sequelize.DATE
+    })
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Mosques');
+    return queryInterface.dropTable('Mosques')
   }
-};
+}

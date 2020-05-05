@@ -1,37 +1,33 @@
-'use strict';
+'use strict'
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('Comments', {
-
       id: {
         type: Sequelize.INTEGER(11),
-        allowNull: false,
-    },
+        allowNull: false
+      },
 
-    userId: {
+      userId: {
         type: Sequelize.STRING,
-        allowNull: false,
-    },
+        allowNull: false
+      },
 
-    text: {
+      text: {
         type: Sequelize.STRING,
-        allowNull: false,
-    },
+        allowNull: false
+      },
 
-    userRating: {
-        type: Sequelize.INTEGER(11),
-    },
+      userRating: {
+        type: Sequelize.INTEGER(11)
+      },
 
-
-    createdAt: Sequelize.DATE,
-    updatedAt: Sequelize.DATE
-
-    });
-
+      createdAt: Sequelize.DATE,
+      updatedAt: Sequelize.DATE
+    })
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Comments');
+    return queryInterface.dropTable('Comments')
   }
-};
+}
