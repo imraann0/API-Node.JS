@@ -31,7 +31,9 @@ app.use(function (req, res, next) {
   next()
 })
 
-const db = require('./database/db')
+app.use('/uploads',express.static('uploads'));
+
+const db = require('./database/db');
 
 db.authenticate()
   .then(() => console.log('connected to db!'))

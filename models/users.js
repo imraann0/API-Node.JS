@@ -41,5 +41,9 @@ module.exports = db.define('User', {
   displayPic: {
     type: Sequelize.STRING,
     allowNull: true
-  }
+  },
+  bio: {
+    type: Sequelize.STRING,
+    allowNull: true,
+  },
 })
