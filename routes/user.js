@@ -49,6 +49,7 @@ router.post('/register', async (req, res) => {
   }
 })
 
+// get user location and save in database 
 router.post('/location', async (req, res) => {
   console.log(req.body)
 
@@ -117,6 +118,7 @@ router.post('/location', async (req, res) => {
   }
 })
 
+
 router.post('/login', async (req, res) => {
   // Validate data
   const { error } = loginValidation(req.body)
@@ -148,7 +150,7 @@ router.get('/users', verify, (req, res) => {
       Usres: users
     })
   })
-})
+});
 
 router.get('/logged', async (req, res) => {
   try {
@@ -159,109 +161,6 @@ router.get('/logged', async (req, res) => {
 
     var decoded = jwt_decode(token)
     console.log(decoded.id)
-
-    router.post('/bio', async (req, res) => {
-      const UpdatedBio = await User.update(
-        {
-          bio: req.body.bio
-        },
-        {
-          where: {
-            id: req.body.id
-          }
-        }
-      ).then(response => {
-        res.json({
-          updatedBio: req.body.bio
-        })
-      })
-    })
-
-    router.get('/logout', async (req, res) => {
-      res.send('Logged out')
-    })
-
-    var storage = multer.diskStorage({
-      destination: function (req, file, cb) {
-        cb(null, './uploads/')
-      },
-      filename: function (req, file, cb) {
-        cb(null, file.originalname)
-      }
-    })
-
-    const fileFilter = (req, file, cb) => {
-      // reject file
-
-      if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-        cb(null, true)
-      } else {
-        cb(new Error('error'), null, true)
-      }
-    }
-    var upload = multer({
-      storage: storage,
-      limits: {
-        fileSize: 1024 * 1024 * 5
-      },
-      fileFilter: fileFilter
-    })
-
-    router.post('/upload', upload.single('userImage'), async (req, res) => {
-      try {
-        res.send(req.file)
-      } catch (err) {
-        res.send(400)
-      }
-
-      console.log(req.file.path)
-
-      const filepath = req.file.path
-
-      const user = await User.findOne({ where: { id: req.body.id } })
-
-      if (user) {
-        await User.update(
-          {
-            displayPic: filepath
-          },
-          {
-            where: {
-              id: req.body.id
-            }
-          }
-        )
-      }
-    })
-
-    // router.get('/image',async (req, res) => {
-
-    //     try {
-    //         const token = req.header("authToken")
-    //         if(!token) {
-    //             console.log("no token found here")
-    //         }
-
-    //         var decoded = jwt_decode(token);
-    //         console.log(decoded.id)
-
-    //         const user = await
-    //             User.findOne(
-    //             { where:
-    //                 {id: decoded.id}
-    //             }).then(result => {
-    //                 res.json({
-    //                     User: result
-    //                 })
-    //         })
-    //     }catch (error) {
-
-    //         console.log(error.message)
-    //         console.log("invalid token")
-    //         res.send("Invalid Token")
-    //     }
-
-    // })
 
     const user = await User.findOne({ where: { id: decoded.id } }).then(
       result => {
@@ -276,5 +175,69 @@ router.get('/logged', async (req, res) => {
     res.send('Invalid Token')
   }
 })
+    
 
+router.post('/bio', async (req, res) => {
+  const UpdatedBio = await User.update(
+    {
+      bio: req.body.bio
+    },
+    {
+      where: {
+        id: req.body.id
+      }
+    }
+  ).then(response => {
+    res.json({
+      updatedBio: req.body.bio
+    })
+  })
+})
+    
+    //logout user 
+    // router.get('/logout', async (req, res) => {
+    //   res.send('Logged out')
+    
+    // });
+
+    var storage = multer.diskStorage({
+      destination: function (req, file, cb) {
+        cb(null, './uploads/')
+      },
+      filename: function (req, file, cb) {
+        cb(null, Date.now()+file.originalname)
+      }
+    })
+
+    const fileFilter = (req, file, cb) => {
+      if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+        cb(null, true)
+      } else {
+        cb(new Error('error'), null, true)
+      }
+    }
+
+    var upload = multer({
+      storage: storage,
+      limits: {
+        fileSize: 1024 * 1024 * 5
+      },
+      fileFilter: fileFilter
+    })
+
+  
+router.post('/upload', upload.single('file') ,async (req, res) => {
+
+try {
+  res.send(req.file.path);
+} catch(error) {
+    console.log(error);
+     res.send(400);
+}
+
+console.log(req.file.path)
+
+ 
+    })
+  
 module.exports = router
