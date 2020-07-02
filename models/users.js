@@ -19,6 +19,10 @@ module.exports = db.define('User', {
     allowNull: false
   },
 
+  dob: {
+    type: Sequelize.DATE,
+    allowNull: false
+  },
   email: {
     type: Sequelize.STRING,
     allowNull: false,
@@ -28,17 +32,23 @@ module.exports = db.define('User', {
     }
   },
 
+  username: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true,
+  },
+
   password: {
     type: Sequelize.STRING,
     allowNull: false
   },
 
-  locationId: {
+  location_id: {
     type: Sequelize.INTEGER(11),
     allowNull: true
   },
 
-  displayPic: {
+  display_pic: {
     type: Sequelize.STRING,
     allowNull: true
   },
@@ -46,4 +56,9 @@ module.exports = db.define('User', {
     type: Sequelize.STRING,
     allowNull: true,
   },
+  trophy_level: {
+    type: Sequelize.INTEGER,
+    allowNull: true,
+
+  }
 })

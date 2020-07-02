@@ -5,7 +5,7 @@ module.exports = {
     return queryInterface.createTable('HalalFood', {
       id: {
         type: Sequelize.INTEGER(11),
-        allowNull: false
+        allowNull: false,
       },
 
       name: {
