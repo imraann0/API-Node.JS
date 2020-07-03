@@ -10,6 +10,10 @@ const verify = require("./verifyToken");
 const Location = require("../models/location");
 const Freinds = require("../models/freinds");
 const { Op } = require("sequelize");
+const _ = require('lodash');
+const users = require("../models/users");
+const { response } = require("express");
+
 
 
 
@@ -205,36 +209,45 @@ router.get("/freinds", async (req, res) => {
   try {
 
     // const user_id = req.body.id
-
-    const user_id = 8 
-    const freindslistID = {}
+    const user_id = 8
 
     if (!user_id) return res.status(400).send("user not logged in");
     
+    // find all freinds where the user id is either user_id1 or user_id2 & confirmed is set true 
     Freinds.findAll({
       where: { 
         [Op.or]: [{user_id1: user_id}, {user_id2: user_id}],
         [Op.and]: [{confirmed: 1}]
       }}).then((freindslist) => {
 
+        // returns all ids 
        var promise =  freindslist.map((freind)=> {
-
-          var freindsIds = [];
 
           var user_id1 = freind.dataValues.user_id1
           var user_id2 = freind.dataValues.user_id2
-
-          freindsIds.push(user_id1)
-          freindsIds.push(user_id2)
-
-
-          console.log("freindids....................................................",freindsIds)
+          return [user_id1, user_id2]
 
         })
 
-      res.status(200).send({
-        Freinds: freindslist,
+        // merges the ids into one arrray and removes the userid from the list 
+        var mergedIds = [].concat.apply([], promise);
+
+        const freindIds = _.without(mergedIds, user_id);
+        console.log("freinds ids only", freindIds);
+
+        //finds the ids of the freinds and returns to client
+        User.findAll({
+          where: {
+            id: freindIds
+          }
+        }).then((freindlist)=> {
+
+        res.status(200).send({
+        Freinds: freindlist,
       });
+
+        })
+
     });
 
   } catch (error) {
@@ -245,32 +258,46 @@ router.get("/freinds", async (req, res) => {
 
 });
 
-// router.get("/freind-request", async (req, res) => {
-//   try {
+router.post("/freind-request", async (req, res) => {
+  try {
 
-//     // const user_id = req.body.id
+    // const user_id = req.body.id
+    //const freind_id = req.body.freind_id
+    const user_id = req.body.id
+    const freind_id = req.body.freind_id
+    console.log(req.body)
 
-//     const user_id = 8 
+    if (!user_id) return res.status(400).send("user not logged in");
 
-//     if (!user_id) return res.status(400).send("user not logged in");
+    const freindRequest = new Freinds({
+      user_id1: user_id,
+      user_id2: freind_id,
+      confirmed: 0
+    });
+
+    const savedRequest = await freindRequest.save().then(function (result) {
+      console.log(result);
+      res.status(201).json({
+        message: "Request Sent",
+      });
+    });
+
+
+
+
     
-//     Freinds.findAll({
-//       where: { 
-//         [Op.or]: [{user_id1: user_id}, {user_id2: user_id}],
-//         [Op.and]: [{confirmed: 1}]
-//       }}).then((freinds) => {
-//       res.status(200).send({
-//         Freinds: freinds,
-//       });
-//     });
 
-//   } catch (error) {
 
-//     console.log(error)
+
+
+
+  } catch (error) {
+
+    console.log(error)
     
-//   }
+  }
 
-// });
+});
 
 
 
