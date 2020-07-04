@@ -11,8 +11,10 @@ const Location = require("../models/location");
 const Freinds = require("../models/freinds");
 const { Op } = require("sequelize");
 const _ = require('lodash');
-const users = require("../models/users");
+// const users = require("../models/users");
 const { response } = require("express");
+const { QueryTypes } = require('sequelize');
+
 
 
 
@@ -33,6 +35,7 @@ router.post("/register", async (req, res) => {
   //Hash pasword
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(req.body.password, salt);
+  
 
   // Createing new User
   const user = new User({
@@ -260,36 +263,59 @@ router.get("/freinds", async (req, res) => {
 
 router.post("/freind-request", async (req, res) => {
   try {
-
     // const user_id = req.body.id
     //const freind_id = req.body.freind_id
-    const user_id = req.body.id
-    const freind_id = req.body.freind_id
-    console.log(req.body)
+    const user_id = 8
+    const freind_id = 21
 
     if (!user_id) return res.status(400).send("user not logged in");
 
-    const freindRequest = new Freinds({
-      user_id1: user_id,
-      user_id2: freind_id,
-      confirmed: 0
-    });
+    // const requestExists = await Freinds.findOne({ 
+    //   where: { 
+    //     [Op.or]: [{user_id1: user_id}, {user_id2: user_id}],
+    //     // [Op.and]: [{confirmed: 0}],
+    //   }
+    // });
 
-    const savedRequest = await freindRequest.save().then(function (result) {
-      console.log(result);
-      res.status(201).json({
-        message: "Request Sent",
+      const requestExists = await db.query('SELECT * FROM `Freinds` WHERE (user_id1 = '+user_id+' OR user_id2 ='+user_id+') AND (user_id1 = '+freind_id+' OR user_id2 ='+freind_id+') AND (confirmed = 0)', {
+        type: QueryTypes.SELECT
       });
-    });
+
+      if (!requestExists || !requestExists.length) {
+
+        const freindRequest = new Freinds({
+          user_id1: user_id,
+          user_id2: freind_id,
+          confirmed: 0
+        });
+        const savedRequest = await freindRequest.save().then(function (result) {
+          console.log(result);
+          res.status(201).json({
+            message: "Request Sent",
+          });
+        });
+      }
+      
+      else {
+        if(requestExists[0].user_id1 === user_id){
+          Freinds.destroy({
+            where: {
+                id: requestExists[0].id
+            }
+        }).then((response) => {
+          res.status(201).json({
+            message: "Request deleted",
+          });
+        }) 
+      }else{
+        
+          res.status(201).json({
+            message: "Request pending, accept or delete",
+          });
+        }
 
 
-
-
-    
-
-
-
-
+      }
 
   } catch (error) {
 
@@ -298,6 +324,53 @@ router.post("/freind-request", async (req, res) => {
   }
 
 });
+
+router.post("/freind-accept", async (req, res) => {
+  try {
+    // const user_id = req.body.id
+    //const freind_id = req.body.freind_id
+    const user_id = req.body.id
+    const freind_id = req.body.freind_id
+
+    if (!user_id) return res.status(400).send("user not logged in");
+
+    const freindRequested = await Freinds.findOne({ 
+      where: { 
+        [Op.or]: [{user_id1: freind_id}, {user_id2: user_id}],
+        [Op.and]: [{confirmed: 0}],
+      }
+    });
+
+    if (!freindRequested) return res.status(400).send(" No Freind Request Found ");
+
+    // console.log(freindRequested.id)
+
+    if (freindRequested) {
+      Freinds.update(
+        {
+          confirmed: 1,
+        },
+        {
+          where: {
+            id: freindRequested.id,
+          },
+        }
+      ).then((response)=>{
+        res.status(201).json({
+          message: "Freind Accepted",
+        });
+      })
+    }
+
+  } catch (error) {
+
+    console.log(error)
+    
+  }
+
+});
+
+
 
 
 
