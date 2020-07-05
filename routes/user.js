@@ -232,13 +232,68 @@ router.get("/freinds", async (req, res) => {
 
         })
 
-        // merges the ids into one arrray and removes the userid from the list 
+        // merges the ids into one arrray  
         var mergedIds = [].concat.apply([], promise);
 
+        // removes the userid from the list
         const freindIds = _.without(mergedIds, user_id);
         console.log("freinds ids only", freindIds);
 
         //finds the ids of the freinds and returns to client
+        User.findAll({
+          where: {
+            id: freindIds
+          }
+        }).then((freindlist)=> {
+        res.status(200).send({
+        Freinds: freindlist,
+      });
+
+        })
+
+    });
+
+  } catch (error) {
+
+    console.log(error)
+    
+  }
+
+});
+
+router.get("/freinds-pending", async (req, res) => {
+
+  try {
+
+    // const user_id = req.body.id
+    const user_id = 21
+
+    if (!user_id) return res.status(400).send("user not logged in");
+    
+    // find all pending freinds where the user id is either user_id1 or user_id2 & confirmed is set true 
+    Freinds.findAll({
+      where: { 
+        [Op.or]: [{user_id1: user_id}, {user_id2: user_id}],
+        [Op.and]: [{confirmed: 0}]
+      }}).then((freindslist) => {
+
+        // returns all ids 
+       var promise =  freindslist.map((freind)=> {
+
+          var user_id1 = freind.dataValues.user_id1
+          var user_id2 = freind.dataValues.user_id2
+          return [user_id1, user_id2]
+
+        })
+
+        // merges the ids into one arrray  
+        var mergedIds = [].concat.apply([], promise);
+
+        //removes the userid from the list
+        const freindIds = _.without(mergedIds, user_id);
+        console.log("freinds ids only", freindIds);
+
+        //finds the ids of the pending freinds and returns to client
         User.findAll({
           where: {
             id: freindIds
@@ -263,23 +318,19 @@ router.get("/freinds", async (req, res) => {
 
 router.post("/freind-request", async (req, res) => {
   try {
-    // const user_id = req.body.id
-    //const freind_id = req.body.freind_id
-    const user_id = 8
-    const freind_id = 21
+    const user_id = req.body.user_id
+    const freind_id = req.body.freind_id
+
 
     if (!user_id) return res.status(400).send("user not logged in");
 
-    // const requestExists = await Freinds.findOne({ 
-    //   where: { 
-    //     [Op.or]: [{user_id1: user_id}, {user_id2: user_id}],
-    //     // [Op.and]: [{confirmed: 0}],
-    //   }
-    // });
+    //query the Freinds table to find where " user_id1 = user_id or user_id2 = user_id  and user_id1 = freind_id or user_id2 = freind_id " 
 
-      const requestExists = await db.query('SELECT * FROM `Freinds` WHERE (user_id1 = '+user_id+' OR user_id2 ='+user_id+') AND (user_id1 = '+freind_id+' OR user_id2 ='+freind_id+') AND (confirmed = 0)', {
+      const requestExists = await db.query('SELECT * FROM `Freinds` WHERE (user_id1 = '+user_id+' OR user_id2 ='+user_id+') AND (user_id1 = '+freind_id+' OR user_id2 ='+freind_id+') ', {
         type: QueryTypes.SELECT
       });
+
+    // if no request is in db, make a new freind request 
 
       if (!requestExists || !requestExists.length) {
 
@@ -295,27 +346,30 @@ router.post("/freind-request", async (req, res) => {
           });
         });
       }
-      
-      else {
-        if(requestExists[0].user_id1 === user_id){
-          Freinds.destroy({
-            where: {
-                id: requestExists[0].id
-            }
-        }).then((response) => {
-          res.status(201).json({
-            message: "Request deleted",
-          });
-        }) 
-      }else{
-        
+      // check if the users are already freinds 
+     else if(requestExists[0].confirmed === 1){
+        res.status(400).json({
+          message: "Already Freinds",
+        });
+      }
+      // check if the user logged in is the one who made the request, if so, and they hit the same endpoint again then it will remove the request(delete the pending freind request)
+      else if(requestExists[0].user_id1 === user_id){
+        Freinds.destroy({
+          where: {
+              id: requestExists[0].id
+          }
+      }).then((response) => {
+        res.status(201).json({
+          message: "Request deleted",
+        });
+      }) 
+    }
+    // if its not the logged in user then the request has already been made by another user so it will be in the users pending to accept or decline freinds
+          else{
           res.status(201).json({
             message: "Request pending, accept or delete",
           });
         }
-
-
-      }
 
   } catch (error) {
 
@@ -329,11 +383,12 @@ router.post("/freind-accept", async (req, res) => {
   try {
     // const user_id = req.body.id
     //const freind_id = req.body.freind_id
-    const user_id = req.body.id
+    const user_id = req.body.user_id
     const freind_id = req.body.freind_id
 
     if (!user_id) return res.status(400).send("user not logged in");
 
+    // looks for the users freinds pending freinds list, where confirmed is 0 
     const freindRequested = await Freinds.findOne({ 
       where: { 
         [Op.or]: [{user_id1: freind_id}, {user_id2: user_id}],
@@ -341,10 +396,10 @@ router.post("/freind-accept", async (req, res) => {
       }
     });
 
+    // if no freind request found then it returns the message 
     if (!freindRequested) return res.status(400).send(" No Freind Request Found ");
 
-    // console.log(freindRequested.id)
-
+    // if freind request is found then it will update the confirmed field to 1 whitch is true 
     if (freindRequested) {
       Freinds.update(
         {
@@ -369,6 +424,49 @@ router.post("/freind-accept", async (req, res) => {
   }
 
 });
+
+router.post("/freind-reject", async (req, res) => {
+  try {
+    // const user_id = req.body.id
+    //const freind_id = req.body.freind_id
+    const user_id = req.body.user_id
+    const freind_id = req.body.freind_id
+
+    if (!user_id) return res.status(400).send("user not logged in");
+
+    // looks for the users freinds pending freinds list, where confirmed is 0 
+    const freindRequested = await Freinds.findOne({ 
+      where: { 
+        [Op.or]: [{user_id1: freind_id}, {user_id2: user_id}],
+        [Op.and]: [{confirmed: 0}],
+      }
+    });
+
+    // if no freind request found then it returns the message 
+    if (!freindRequested) return res.status(400).send(" No Freind Request Found ");
+
+    // if freind request is found then it will delete the request made 
+    if (freindRequested) {
+      Freinds.destroy({
+        where: {
+            id: freindRequested.id
+        }
+    }).then((response)=>{
+        res.status(201).json({
+          message: "Freind Request Rejected",
+        });
+      })
+    }
+
+  } catch (error) {
+
+    console.log(error)
+    
+  }
+
+});
+
+
 
 
 
