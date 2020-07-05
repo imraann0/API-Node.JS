@@ -211,8 +211,8 @@ router.get("/freinds", async (req, res) => {
 
   try {
 
-    // const user_id = req.body.id
-    const user_id = 8
+    const user_id = req.body.user_id
+    // const user_id = 9
 
     if (!user_id) return res.status(400).send("user not logged in");
     
@@ -236,13 +236,13 @@ router.get("/freinds", async (req, res) => {
         var mergedIds = [].concat.apply([], promise);
 
         // removes the userid from the list
-        const freindIds = _.without(mergedIds, user_id);
-        console.log("freinds ids only", freindIds);
+        const freindPendingIds = _.without(mergedIds, user_id);
+        console.log("freinds ids only", freindPendingIds);
 
         //finds the ids of the freinds and returns to client
         User.findAll({
           where: {
-            id: freindIds
+            id: freindPendingIds
           }
         }).then((freindlist)=> {
         res.status(200).send({
@@ -265,15 +265,15 @@ router.get("/freinds-pending", async (req, res) => {
 
   try {
 
-    // const user_id = req.body.id
-    const user_id = 21
+    const user_id = req.body.user_id
+    // const user_id = 21
 
     if (!user_id) return res.status(400).send("user not logged in");
     
     // find all pending freinds where the user id is either user_id1 or user_id2 & confirmed is set true 
     Freinds.findAll({
       where: { 
-        [Op.or]: [{user_id1: user_id}, {user_id2: user_id}],
+        user_id2: user_id,
         [Op.and]: [{confirmed: 0}]
       }}).then((freindslist) => {
 
@@ -290,13 +290,13 @@ router.get("/freinds-pending", async (req, res) => {
         var mergedIds = [].concat.apply([], promise);
 
         //removes the userid from the list
-        const freindIds = _.without(mergedIds, user_id);
-        console.log("freinds ids only", freindIds);
+        const freindPendingIds = _.without(mergedIds, user_id);
+        console.log("freinds ids only", freindPendingIds);
 
         //finds the ids of the pending freinds and returns to client
         User.findAll({
           where: {
-            id: freindIds
+            id: freindPendingIds
           }
         }).then((freindlist)=> {
 
@@ -388,16 +388,16 @@ router.post("/freind-accept", async (req, res) => {
 
     if (!user_id) return res.status(400).send("user not logged in");
 
-    // looks for the users freinds pending freinds list, where confirmed is 0 
+    // looks for the users freinds pending freinds list, where confirmed is 0 because user id2 is always teh user raccepting the feind request
     const freindRequested = await Freinds.findOne({ 
       where: { 
-        [Op.or]: [{user_id1: freind_id}, {user_id2: user_id}],
+        user_id1: freind_id, user_id2: user_id ,
         [Op.and]: [{confirmed: 0}],
       }
     });
 
     // if no freind request found then it returns the message 
-    if (!freindRequested) return res.status(400).send(" No Freind Request Found ");
+    if (!freindRequested) return res.status(400).send(" No Freind Request Exists ");
 
     // if freind request is found then it will update the confirmed field to 1 whitch is true 
     if (freindRequested) {
@@ -437,7 +437,7 @@ router.post("/freind-reject", async (req, res) => {
     // looks for the users freinds pending freinds list, where confirmed is 0 
     const freindRequested = await Freinds.findOne({ 
       where: { 
-        [Op.or]: [{user_id1: freind_id}, {user_id2: user_id}],
+        user_id1: freind_id, user_id2: user_id ,
         [Op.and]: [{confirmed: 0}],
       }
     });
