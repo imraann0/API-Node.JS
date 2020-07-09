@@ -12,18 +12,24 @@ module.exports = {
     
       name: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
       },
     
       content: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
     
       },
     
       date: {
         type: Sequelize.DATE,
         allowNull: true
+    
+      },
+
+      type: {
+        type: Sequelize.STRING,
+        allowNull: false
     
       },
             

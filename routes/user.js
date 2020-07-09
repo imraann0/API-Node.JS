@@ -9,14 +9,18 @@ const { registerValidation, loginValidation } = require("./validation");
 const verify = require("./verifyToken");
 const Location = require("../models/location");
 const Freinds = require("../models/freinds");
+const Challenges = require("../models/challenges");
+const Chalengeusers = require("../models/challengeusers");
 const { Op } = require("sequelize");
 const _ = require('lodash');
 // const users = require("../models/users");
 const { response } = require("express");
 const { QueryTypes } = require('sequelize');
-
-
-
+const challenges = require("../models/challenges");
+const Challengeusers = require("../models/challengeusers");
+const { json } = require("body-parser");
+const challengeusers = require("../models/challengeusers");
+const { escapeRegExp } = require("lodash");
 
 
 router.post("/register", async (req, res) => {
@@ -465,6 +469,275 @@ router.post("/freind-reject", async (req, res) => {
   }
 
 });
+
+router.post("/unfreind", async (req, res) => {
+  try {
+    //const user_id = 124
+    //const freind_id = req.body.freind_id
+    
+    const user_id = req.body.user_id
+    const freind_id = req.body.user_id
+
+    if (!user_id) return res.status(400).send("user not logged in");
+
+      // looks for the users freinds list, where confirmed is 1
+    const freindExists = await db.query('SELECT * FROM `Freinds` WHERE (user_id1 = '+user_id+' OR user_id2 ='+user_id+') AND (user_id1 = '+freind_id+' OR user_id2 ='+freind_id+') AND (confirmed = 1 ) ', {
+      type: QueryTypes.SELECT
+    });
+
+    // if no freind request found then it returns the message 
+    if (!freindExists || !freindExists.length) return res.status(400).send(" Freindship not found ");
+
+    // if friends, then delete
+    if (freindExists ) {
+      Freinds.destroy({
+        where: {
+            id: freindExists[0].id
+        }
+    })
+    .then((response)=>{
+        res.status(201).json({
+          message: "Freind Removed",
+        });
+      })
+    }
+  
+
+  } catch (error) {
+
+    console.log(error)
+    
+  }
+
+});
+
+router.post("/create-challenge", async (req, res) => {
+  try {
+    const user_id = req.body.user_id
+    const freind_id = req.body.freind_id
+    const type = req.body.type
+    const content = req.body.content
+    const date = req.body.date
+
+
+    if (!user_id) return res.status(400).send("user not logged in");
+
+      async function createChallenge() { 
+
+        const challenge = new Challenges({
+          user_id, type, date, content, 
+        });
+        const savedChallenge = await challenge.save().then(function (result) {
+          // res.status(201).json({
+          //   message: "Challenge Made",
+          // });
+          res.end("Challenge Created")
+          return result
+        })
+        const challengeUsers = new Challengeusers({
+          challenge_id: savedChallenge.dataValues.id , user_id, status: 1, 
+        });
+        await challengeUsers.save().error(function (err) {
+          console.log(err);
+        });
+
+      } 
+
+      // async function checkChallenge() {
+
+      // const challengeExists = await Chalengeusers.findAll({ 
+      //   where: { 
+      //     user_id, status: 1     
+      //    }
+      // });
+        
+      //   if (challengeExists[0].id){
+
+      //   challengeExists.map((existingChallenges) =>{
+      //     challngeInfo = Challenges.findAll({
+      //       where: {
+      //         id: existingChallenges.challenge_id
+      //       }
+      //     }).then((result)=>{
+      //       if((result[0].dataValues.type === type) && (result[0].dataValues.date === date)){
+      //         res.end("Challenge already taking place on that day");
+      //         return
+      //       }
+      //     })
+      //   })
+      // }
+
+      // }
+
+      // checkChallenge()
+
+      //......................................................................
+
+
+        challengeExists = await Chalengeusers.findAll({ 
+        where: { 
+          user_id, status: 1     
+         }
+      }).then((challenges)=>{
+
+        var promise = challenges.map((result)=>{
+
+          // console.log(result.challenge_id)
+          return result.challenge_id
+      }) 
+
+      Challenges.findAll({
+        where: {
+          id: promise
+        }
+      }).then((challenges)=>{
+
+        var promise2 = challenges.map((challenge)=>{
+         return [challenge.type, challenge.date]
+
+        })
+
+        // console.log(promise2)
+
+        var mergedprom = [].concat.apply([], promise2);
+
+        console.log(mergedprom)
+
+        const incldues = mergedprom.includes(type && date)
+
+        console.log(incldues)
+
+        if(incldues === false){
+          createChallenge()
+        }
+        else {
+          res.status(201).json({
+            message: "Already doing the same challenge on this day",
+          });
+          
+        }
+
+        
+
+
+
+
+
+    
+
+
+       
+
+
+
+
+        
+
+
+
+
+        
+
+        
+      })
+      
+
+    })
+
+
+      // Freinds.findAll({
+      //   where: { 
+      //     [Op.or]: [{user_id1: user_id}, {user_id2: user_id}],
+      //     [Op.and]: [{confirmed: 1}]
+      //   }}).then((freindslist) => {
+  
+      //     // returns all ids 
+      //    var promise =  freindslist.map((freind)=> {
+  
+      //       var user_id1 = freind.dataValues.user_id1
+      //       var user_id2 = freind.dataValues.user_id2
+      //       return [user_id1, user_id2]
+  
+      //     })
+
+
+    
+
+
+
+  
+
+
+      // const challengeExists = await Chalengeusers.findAll({ 
+      //   where: { 
+      //     user_id, status: 1     
+      //    }
+      // });
+
+      //   if (challengeExists[0].id){
+      //   challengeExists.map((existingChallenges) =>{
+      //     challngeInfo = Challenges.findAll({
+      //       where: {
+      //         id: existingChallenges.challenge_id
+      //       }
+      //     }).then((result)=>{
+      //       if((result[0].dataValues.type === type) && (result[0].dataValues.date === date)){
+      //         res.end("Challenge already taking place on that day");
+      //       }
+      //     })
+      //   })
+      // }
+
+
+
+
+
+    
+
+  } catch (error) {
+
+    console.log(error)
+    
+  }
+
+});
+
+
+
+
+router.post("/add-user-challenge", async (req, res) => {
+  try {
+
+    // const user_id = req.body.id
+    //const freind_id = req.body.freind_id
+    const user_id = req.body.user_id
+    const freind_id = req.body.freind_id
+    const challenge_id = req.body.challenge_id
+    const content = req.body.content
+
+    if (!user_id) return res.status(400).send("user not logged in");
+
+    console.log(freind_id)
+
+      const createUsersChallengeFreinds = new Challengeusers({
+        user_id: freind_id,
+        challenge_id,
+        status: 0
+      })
+
+      const savedUsersChallengeFreinds = await createUsersChallengeFreinds.save()
+    
+  } catch (error) {
+
+    console.log(error)
+    
+  }
+
+});
+
+
+
+
 
 
 

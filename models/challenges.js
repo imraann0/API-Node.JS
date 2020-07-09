@@ -9,20 +9,31 @@ module.exports = db.define('Challenges', {
     autoIncrement: true
   },
 
+  user_id: {
+    type: Sequelize.INTEGER(11),
+    allowNull: false,
+  },
+
   name: {
     type: Sequelize.STRING,
-    allowNull: false
+    allowNull: true
   },
 
   content: {
     type: Sequelize.STRING,
-    allowNull: false
+    allowNull: true
 
   },
 
   date: {
     type: Sequelize.DATE,
     allowNull: true
+
+  },
+
+  type: {
+    type: Sequelize.STRING,
+    allowNull: false
 
   }
 
