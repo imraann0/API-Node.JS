@@ -8,20 +8,17 @@ const User = require("../models/users");
 const { registerValidation, loginValidation } = require("./validation");
 const verify = require("./verifyToken");
 const Location = require("../models/location");
-const Freinds = require("../models/freinds");
+const Friends = require("../models/friends");
 const Challenges = require("../models/challenges");
 const Chalengeusers = require("../models/challengeusers");
 const { Op } = require("sequelize");
-const _ = require('lodash');
-// const users = require("../models/users");
+const _ = require("lodash");
 const { response } = require("express");
-const { QueryTypes } = require('sequelize');
-const challenges = require("../models/challenges");
+const { QueryTypes } = require("sequelize");
 const Challengeusers = require("../models/challengeusers");
 const { json } = require("body-parser");
 const challengeusers = require("../models/challengeusers");
 const { escapeRegExp } = require("lodash");
-
 
 router.post("/register", async (req, res) => {
   //Validate Data
@@ -32,14 +29,15 @@ router.post("/register", async (req, res) => {
   const emailExists = await User.findOne({ where: { email: req.body.email } });
   if (emailExists) return res.status(400).send("Email already Exists");
 
-    //Check if username already in exists
-    const userNameExists = await User.findOne({ where: { username: req.body.username } });
-    if (userNameExists) return res.status(400).send("Username already Taken");
+  //Check if username already in exists
+  const userNameExists = await User.findOne({
+    where: { username: req.body.username },
+  });
+  if (userNameExists) return res.status(400).send("Username already Taken");
 
   //Hash pasword
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(req.body.password, salt);
-  
 
   // Createing new User
   const user = new User({
@@ -62,7 +60,7 @@ router.post("/register", async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(201).json({
+    res.status(400).json({
       message: "user not created",
     });
   }
@@ -211,539 +209,614 @@ router.post("/bio", async (req, res) => {
   });
 });
 
-router.get("/freinds", async (req, res) => {
-
+router.get("/friends", async (req, res) => {
   try {
-
-    const user_id = req.body.user_id
+    const user_id = req.body.user_id;
     // const user_id = 9
 
     if (!user_id) return res.status(400).send("user not logged in");
-    
-    // find all freinds where the user id is either user_id1 or user_id2 & confirmed is set true 
-    Freinds.findAll({
-      where: { 
-        [Op.or]: [{user_id1: user_id}, {user_id2: user_id}],
-        [Op.and]: [{confirmed: 1}]
-      }}).then((freindslist) => {
 
-        // returns all ids 
-       var promise =  freindslist.map((freind)=> {
-
-          var user_id1 = freind.dataValues.user_id1
-          var user_id2 = freind.dataValues.user_id2
-          return [user_id1, user_id2]
-
-        })
-
-        // merges the ids into one arrray  
-        var mergedIds = [].concat.apply([], promise);
-
-        // removes the userid from the list
-        const freindPendingIds = _.without(mergedIds, user_id);
-        console.log("freinds ids only", freindPendingIds);
-
-        //finds the ids of the freinds and returns to client
-        User.findAll({
-          where: {
-            id: freindPendingIds
-          }
-        }).then((freindlist)=> {
-        res.status(200).send({
-        Freinds: freindlist,
+    // find all friends where the user id is either user_id1 or user_id2 & confirmed is set true
+    Friends.findAll({
+      where: {
+        [Op.or]: [{ user_id1: user_id }, { user_id2: user_id }],
+        [Op.and]: [{ confirmed: 1 }],
+      },
+    }).then((friendslist) => {
+      // returns all ids
+      var promise = friendslist.map((friend) => {
+        var user_id1 = friend.dataValues.user_id1;
+        var user_id2 = friend.dataValues.user_id2;
+        return [user_id1, user_id2];
       });
 
-        })
+      // merges the ids into one arrray
+      var mergedIds = [].concat.apply([], promise);
 
+      // removes the userid from the list
+      const friendPendingIds = _.without(mergedIds, user_id);
+      console.log("friends ids only", friendPendingIds);
+
+      //finds the ids of the friends and returns to client
+      User.findAll({
+        where: {
+          id: friendPendingIds,
+        },
+      }).then((friendlist) => {
+        if (!friendslist || friendlist.length == 0) {
+          res.status(204).send({
+            message: "no friends found",
+          });
+        } else {
+          res.status(200).send({
+            message: friendlist,
+          });
+        }
+      });
     });
-
   } catch (error) {
-
-    console.log(error)
-    
+    console.log(error);
   }
-
 });
 
-router.get("/freinds-pending", async (req, res) => {
-
+router.get("/friends-pending", async (req, res) => {
   try {
-
-    const user_id = req.body.user_id
+    const user_id = req.body.user_id;
     // const user_id = 21
 
     if (!user_id) return res.status(400).send("user not logged in");
-    
-    // find all pending freinds where the user id is either user_id1 or user_id2 & confirmed is set true 
-    Freinds.findAll({
-      where: { 
+
+    // find all pending friends where the user id is either user_id1 or user_id2 & confirmed is set true
+    Friends.findAll({
+      where: {
         user_id2: user_id,
-        [Op.and]: [{confirmed: 0}]
-      }}).then((freindslist) => {
-
-        // returns all ids 
-       var promise =  freindslist.map((freind)=> {
-
-          var user_id1 = freind.dataValues.user_id1
-          var user_id2 = freind.dataValues.user_id2
-          return [user_id1, user_id2]
-
-        })
-
-        // merges the ids into one arrray  
-        var mergedIds = [].concat.apply([], promise);
-
-        //removes the userid from the list
-        const freindPendingIds = _.without(mergedIds, user_id);
-        console.log("freinds ids only", freindPendingIds);
-
-        //finds the ids of the pending freinds and returns to client
-        User.findAll({
-          where: {
-            id: freindPendingIds
-          }
-        }).then((freindlist)=> {
-
-        res.status(200).send({
-        Freinds: freindlist,
+        [Op.and]: [{ confirmed: 0 }],
+      },
+    }).then((friendslist) => {
+      // returns all ids
+      var promise = friendslist.map((friend) => {
+        var user_id1 = friend.dataValues.user_id1;
+        var user_id2 = friend.dataValues.user_id2;
+        return [user_id1, user_id2];
       });
 
-        })
+      // merges the ids into one arrray
+      var mergedIds = [].concat.apply([], promise);
 
+      //removes the userid from the list
+      const friendPendingIds = _.without(mergedIds, user_id);
+
+      //finds the ids of the pending friends and returns to client
+      User.findAll({
+        where: {
+          id: friendPendingIds,
+        },
+      }).then((friendlist) => {
+        res.status(200).send({
+          friends: friendlist,
+        });
+      });
     });
-
   } catch (error) {
-
-    console.log(error)
-    
+    console.log(error);
   }
-
 });
 
-router.post("/freind-request", async (req, res) => {
+router.post("/friend-request", async (req, res) => {
   try {
-    const user_id = req.body.user_id
-    const freind_id = req.body.freind_id
-
+    const user_id = req.body.user_id;
+    const friend_id = req.body.friend_id;
 
     if (!user_id) return res.status(400).send("user not logged in");
 
-    //query the Freinds table to find where " user_id1 = user_id or user_id2 = user_id  and user_id1 = freind_id or user_id2 = freind_id " 
+    //query the friends table to find where " user_id1 = user_id or user_id2 = user_id  and user_id1 = friend_id or user_id2 = friend_id "
 
-      const requestExists = await db.query('SELECT * FROM `Freinds` WHERE (user_id1 = '+user_id+' OR user_id2 ='+user_id+') AND (user_id1 = '+freind_id+' OR user_id2 ='+freind_id+') ', {
-        type: QueryTypes.SELECT
+    const requestExists = await db.query(
+      "SELECT * FROM `friends` WHERE (user_id1 = " +
+        user_id +
+        " OR user_id2 =" +
+        user_id +
+        ") AND (user_id1 = " +
+        friend_id +
+        " OR user_id2 =" +
+        friend_id +
+        ") ",
+      {
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    // if no request is in db, make a new friend request
+
+    if (!requestExists || !requestExists.length) {
+      const friendRequest = new friends({
+        user_id1: user_id,
+        user_id2: friend_id,
+        confirmed: 0,
       });
-
-    // if no request is in db, make a new freind request 
-
-      if (!requestExists || !requestExists.length) {
-
-        const freindRequest = new Freinds({
-          user_id1: user_id,
-          user_id2: freind_id,
-          confirmed: 0
-        });
-        const savedRequest = await freindRequest.save().then(function (result) {
-          console.log(result);
-          res.status(201).json({
-            message: "Request Sent",
-          });
-        });
-      }
-      // check if the users are already freinds 
-     else if(requestExists[0].confirmed === 1){
-        res.status(400).json({
-          message: "Already Freinds",
-        });
-      }
-      // check if the user logged in is the one who made the request, if so, and they hit the same endpoint again then it will remove the request(delete the pending freind request)
-      else if(requestExists[0].user_id1 === user_id){
-        Freinds.destroy({
-          where: {
-              id: requestExists[0].id
-          }
-      }).then((response) => {
-        res.status(201).json({
-          message: "Request deleted",
-        });
-      }) 
+      const savedRequest = await friendRequest.save().then(function (result) {
+        console.log(result);
+        res.status(400).send("Request sent");
+      });
     }
-    // if its not the logged in user then the request has already been made by another user so it will be in the users pending to accept or decline freinds
-          else{
-          res.status(201).json({
-            message: "Request pending, accept or delete",
-          });
-        }
-
+    // check if the users are already friends
+    else if (requestExists[0].confirmed === 1) {
+      res.status(400).send("Alerady friends");
+    }
+    // check if the user logged in is the one who made the request, if so, and they hit the same endpoint again then it will remove the request(delete the pending friend request)
+    else if (requestExists[0].user_id1 === user_id) {
+      Friends.destroy({
+        where: {
+          id: requestExists[0].id,
+        },
+      }).then((response) => {
+        res.status(204).send("Request deleted");
+      });
+    }
+    // if its not the logged in user then the request has already been made by another user so it will be in the users pending to accept or decline friends
+    else {
+      res.status(400).send("Request pending, check pending tab");
+    }
   } catch (error) {
-
-    console.log(error)
-    
+    console.log(error);
   }
-
 });
 
-router.post("/freind-accept", async (req, res) => {
+router.post("/friend-accept", async (req, res) => {
   try {
     // const user_id = req.body.id
-    //const freind_id = req.body.freind_id
-    const user_id = req.body.user_id
-    const freind_id = req.body.freind_id
+    //const friend_id = req.body.friend_id
+    const user_id = req.body.user_id;
+    const friend_id = req.body.friend_id;
 
     if (!user_id) return res.status(400).send("user not logged in");
 
-    // looks for the users freinds pending freinds list, where confirmed is 0 because user id2 is always teh user raccepting the feind request
-    const freindRequested = await Freinds.findOne({ 
-      where: { 
-        user_id1: freind_id, user_id2: user_id ,
-        [Op.and]: [{confirmed: 0}],
-      }
+    // looks for the users friends pending friends list, where confirmed is 0 because user id2 is always teh user raccepting the feind request
+    const friendRequested = await Friends.findOne({
+      where: {
+        user_id1: friend_id,
+        user_id2: user_id,
+        [Op.and]: [{ confirmed: 0 }],
+      },
     });
 
-    // if no freind request found then it returns the message 
-    if (!freindRequested) return res.status(400).send(" No Freind Request Exists ");
+    // if no friend request found then it returns the message
+    if (!friendRequested)
+      return res.status(400).send(" No Friend Request Exists ");
 
-    // if freind request is found then it will update the confirmed field to 1 whitch is true 
-    if (freindRequested) {
-      Freinds.update(
+    // if friend request is found then it will update the confirmed field to 1 whitch is true
+    if (friendRequested) {
+      Friends.update(
         {
           confirmed: 1,
         },
         {
           where: {
-            id: freindRequested.id,
+            id: friendRequested.id,
           },
         }
-      ).then((response)=>{
-        res.status(201).json({
-          message: "Freind Accepted",
-        });
-      })
+      ).then((response) => {
+        res.status(201).send("Friend accepted");
+      });
     }
-
   } catch (error) {
-
-    console.log(error)
-    
+    console.log(error);
   }
-
 });
 
-router.post("/freind-reject", async (req, res) => {
+router.post("/friend-reject", async (req, res) => {
   try {
     // const user_id = req.body.id
-    //const freind_id = req.body.freind_id
-    const user_id = req.body.user_id
-    const freind_id = req.body.freind_id
+    //const friend_id = req.body.friend_id
+    const user_id = req.body.user_id;
+    const friend_id = req.body.friend_id;
 
     if (!user_id) return res.status(400).send("user not logged in");
 
-    // looks for the users freinds pending freinds list, where confirmed is 0 
-    const freindRequested = await Freinds.findOne({ 
-      where: { 
-        user_id1: freind_id, user_id2: user_id ,
-        [Op.and]: [{confirmed: 0}],
-      }
+    // looks for the users friends pending friends list, where confirmed is 0
+    const friendRequested = await Friends.findOne({
+      where: {
+        user_id1: friend_id,
+        user_id2: user_id,
+        [Op.and]: [{ confirmed: 0 }],
+      },
     });
 
-    // if no freind request found then it returns the message 
-    if (!freindRequested) return res.status(400).send(" No Freind Request Found ");
+    // if no friend request found then it returns the message
+    if (!friendRequested)
+      return res.status(400).send(" No Friend Request Found ");
 
-    // if freind request is found then it will delete the request made 
-    if (freindRequested) {
-      Freinds.destroy({
+    // if friend request is found then it will delete the request made
+    if (friendRequested) {
+      Friends.destroy({
         where: {
-            id: freindRequested.id
-        }
-    }).then((response)=>{
-        res.status(201).json({
-          message: "Freind Request Rejected",
-        });
-      })
+          id: friendRequested.id,
+        },
+      }).then((response) => {
+        res.status(204).send("Friend request rejected");
+
+      });
     }
-
   } catch (error) {
-
-    console.log(error)
-    
+    console.log(error);
   }
-
 });
 
-router.post("/unfreind", async (req, res) => {
+router.post("/unfriend", async (req, res) => {
   try {
     //const user_id = 124
-    //const freind_id = req.body.freind_id
-    
-    const user_id = req.body.user_id
-    const freind_id = req.body.user_id
+    //const friend_id = req.body.friend_id
+
+    const user_id = req.body.user_id;
+    const friend_id = req.body.user_id;
 
     if (!user_id) return res.status(400).send("user not logged in");
 
-      // looks for the users freinds list, where confirmed is 1
-    const freindExists = await db.query('SELECT * FROM `Freinds` WHERE (user_id1 = '+user_id+' OR user_id2 ='+user_id+') AND (user_id1 = '+freind_id+' OR user_id2 ='+freind_id+') AND (confirmed = 1 ) ', {
-      type: QueryTypes.SELECT
-    });
+    // looks for the users friends list, where confirmed is 1
+    const friendExists = await db.query(
+      "SELECT * FROM `friends` WHERE (user_id1 = " +
+        user_id +
+        " OR user_id2 =" +
+        user_id +
+        ") AND (user_id1 = " +
+        friend_id +
+        " OR user_id2 =" +
+        friend_id +
+        ") AND (confirmed = 1 ) ",
+      {
+        type: QueryTypes.SELECT,
+      }
+    );
 
-    // if no freind request found then it returns the message 
-    if (!freindExists || !freindExists.length) return res.status(400).send(" Freindship not found ");
+    // if no friend request found then it returns the message
+    if (!friendExists || !friendExists.length)
+      return res.status(400).send(" friendship not found ");
 
     // if friends, then delete
-    if (freindExists ) {
-      Freinds.destroy({
+    if (friendExists) {
+      Friends.destroy({
         where: {
-            id: freindExists[0].id
-        }
-    })
-    .then((response)=>{
-        res.status(201).json({
-          message: "Freind Removed",
-        });
-      })
+          id: friendExists[0].id,
+        },
+      }).then((response) => {
+        res.status(204).send("friend removed");
+      });
     }
-  
-
   } catch (error) {
-
-    console.log(error)
-    
+    console.log(error);
   }
-
 });
 
 router.post("/create-challenge", async (req, res) => {
   try {
-    const user_id = req.body.user_id
-    const freind_id = req.body.freind_id
-    const type = req.body.type
-    const content = req.body.content
-    const date = req.body.date
-
+    const user_id = req.body.user_id;
+    const type = req.body.type;
+    const content = req.body.content;
+    const date = req.body.date;
 
     if (!user_id) return res.status(400).send("user not logged in");
 
-      async function createChallenge() { 
+    async function createChallenge() {
+      const challenge = new Challenges({
+        user_id,
+        type,
+        date,
+        content,
+      });
+      const savedChallenge = await challenge.save().then(function (result) {
+        res.status(201).send("challenge made");
+        return result;
+      });
+      const challengeUsers = new Challengeusers({
+        challenge_id: savedChallenge.dataValues.id,
+        user_id,
+        status: 1,
+      });
+      await challengeUsers.save().error(function (err) {
+        console.log(err);
+      });
+    }
 
-        const challenge = new Challenges({
-          user_id, type, date, content, 
-        });
-        const savedChallenge = await challenge.save().then(function (result) {
-          // res.status(201).json({
-          //   message: "Challenge Made",
-          // });
-          res.end("Challenge Created")
-          return result
-        })
-        const challengeUsers = new Challengeusers({
-          challenge_id: savedChallenge.dataValues.id , user_id, status: 1, 
-        });
-        await challengeUsers.save().error(function (err) {
-          console.log(err);
-        });
-
-      } 
-
-      // async function checkChallenge() {
-
-      // const challengeExists = await Chalengeusers.findAll({ 
-      //   where: { 
-      //     user_id, status: 1     
-      //    }
-      // });
-        
-      //   if (challengeExists[0].id){
-
-      //   challengeExists.map((existingChallenges) =>{
-      //     challngeInfo = Challenges.findAll({
-      //       where: {
-      //         id: existingChallenges.challenge_id
-      //       }
-      //     }).then((result)=>{
-      //       if((result[0].dataValues.type === type) && (result[0].dataValues.date === date)){
-      //         res.end("Challenge already taking place on that day");
-      //         return
-      //       }
-      //     })
-      //   })
-      // }
-
-      // }
-
-      // checkChallenge()
-
-      //......................................................................
-
-
-        challengeExists = await Chalengeusers.findAll({ 
-        where: { 
-          user_id, status: 1     
-         }
-      }).then((challenges)=>{
-
-        var promise = challenges.map((result)=>{
-
-          // console.log(result.challenge_id)
-          return result.challenge_id
-      }) 
+    const challengeExists = await Chalengeusers.findAll({
+      where: {
+        user_id,
+        status: 1,
+      },
+    }).then((challenges) => {
+      var promise = challenges.map((result) => {
+        // console.log(result.challenge_id)
+        return result.challenge_id;
+      });
 
       Challenges.findAll({
         where: {
-          id: promise
-        }
-      }).then((challenges)=>{
-
-        var promise2 = challenges.map((challenge)=>{
-         return [challenge.type, challenge.date]
-
-        })
-
-        // console.log(promise2)
+          id: promise,
+        },
+      }).then((challenges) => {
+        var promise2 = challenges.map((challenge) => {
+          return [challenge.type, challenge.date];
+        });
 
         var mergedprom = [].concat.apply([], promise2);
 
-        console.log(mergedprom)
+        console.log(mergedprom);
 
-        const incldues = mergedprom.includes(type && date)
+        const incldues = mergedprom.includes(type && date);
 
-        console.log(incldues)
+        console.log(incldues);
 
-        if(incldues === false){
-          createChallenge()
+        if (incldues === false) {
+          createChallenge();
+        } else {
+          res.status(400).send("Already doing the same challenge on this day");
         }
-        else {
-          res.status(201).json({
-            message: "Already doing the same challenge on this day",
-          });
-          
-        }
-
-        
-
-
-
-
-
-    
-
-
-       
-
-
-
-
-        
-
-
-
-
-        
-
-        
-      })
-      
-
-    })
-
-
-      // Freinds.findAll({
-      //   where: { 
-      //     [Op.or]: [{user_id1: user_id}, {user_id2: user_id}],
-      //     [Op.and]: [{confirmed: 1}]
-      //   }}).then((freindslist) => {
-  
-      //     // returns all ids 
-      //    var promise =  freindslist.map((freind)=> {
-  
-      //       var user_id1 = freind.dataValues.user_id1
-      //       var user_id2 = freind.dataValues.user_id2
-      //       return [user_id1, user_id2]
-  
-      //     })
-
-
-    
-
-
-
-  
-
-
-      // const challengeExists = await Chalengeusers.findAll({ 
-      //   where: { 
-      //     user_id, status: 1     
-      //    }
-      // });
-
-      //   if (challengeExists[0].id){
-      //   challengeExists.map((existingChallenges) =>{
-      //     challngeInfo = Challenges.findAll({
-      //       where: {
-      //         id: existingChallenges.challenge_id
-      //       }
-      //     }).then((result)=>{
-      //       if((result[0].dataValues.type === type) && (result[0].dataValues.date === date)){
-      //         res.end("Challenge already taking place on that day");
-      //       }
-      //     })
-      //   })
-      // }
-
-
-
-
-
-    
-
+      });
+    });
   } catch (error) {
-
-    console.log(error)
-    
+    console.log(error);
   }
-
 });
 
-
-
-
-router.post("/add-user-challenge", async (req, res) => {
+router.post("/invite-user-challenge", async (req, res) => {
   try {
-
     // const user_id = req.body.id
-    //const freind_id = req.body.freind_id
-    const user_id = req.body.user_id
-    const freind_id = req.body.freind_id
-    const challenge_id = req.body.challenge_id
-    const content = req.body.content
+    //const friend_id = req.body.friend_id
+    const user_id = req.body.user_id;
+    const friend_id = req.body.friend_id;
+    const challenge_id = req.body.challenge_id;
 
     if (!user_id) return res.status(400).send("user not logged in");
 
-    console.log(freind_id)
-
-      const createUsersChallengeFreinds = new Challengeusers({
-        user_id: freind_id,
+    const ChallengeSent = await challengeusers.findOne({
+      where: {
+        user_id: friend_id,
         challenge_id,
-        status: 0
-      })
+      },
+    });
 
-      const savedUsersChallengeFreinds = await createUsersChallengeFreinds.save()
-    
+    if (ChallengeSent == undefined || ChallengeSent.length == 0) {
+      const inviteUserToChallenge = new Challengeusers({
+        user_id: friend_id,
+        challenge_id,
+        sent_id: user_id,
+        status: 0,
+      });
+      const savedInvte = await inviteUserToChallenge
+        .save()
+        .then(function (result) {
+          res.status(201).send("Invite sent");
+        });
+    }
+
+    // check if the users are already doing challenge
+    else if (ChallengeSent.dataValues.status === 1) {
+      res.status(400).send("Already doing challenge");
+
+    }
+    // check if the user logged in is the one who sent the invite request, if so, and they hit the same endpoint again then it will remove the request(delete the pending invite request)
+    else if (ChallengeSent.dataValues.sent_id === user_id) {
+      challengeusers
+        .destroy({
+          where: {
+            id: ChallengeSent.id,
+          },
+        })
+        .then((response) => {
+          res.status(204).send("Invite deleted");
+        });
+    }
+    // if its not the logged in user then the request has already been made by another user so it will be in the users pending to accept or decline friends
+    else {
+      res.status(400).send("Request pending, check pending tab");
+    }
   } catch (error) {
-
-    console.log(error)
-    
+    console.log(error);
   }
-
 });
 
+router.post("/challenge-accept", async (req, res) => {
+  try {
+    // const user_id = req.body.id
+    //const friend_id = req.body.friend_id
+    const user_id = req.body.user_id;
+    const friend_id = req.body.friend_id;
+    const challenge_id = req.body.challenge_id;
 
+    if (!user_id) return res.status(400).send("user not logged in");
 
+    // looks for the challenges pending where status is 0 and user_id
+    const challengeRequest = await Challengeusers.findOne({
+      where: {
+        user_id,
+        status: 0,
+        challenge_id,
+      },
+    });
 
+    console.log(challengeRequest);
 
+    // if no challenge request found then it returns the message
+    if (!challengeRequest)
+      return res.status(400).send(" No Challenge Requests Exists ");
+    //  console.log(challengeRequest.dataValues.challenge_id)
 
+    // if challenge request is found then it will update the confirmed field to 1 whitch is true
+    if (challengeRequest) {
+      Challengeusers.update(
+        {
+          status: 1,
+        },
+        {
+          where: {
+            id: challengeRequest.dataValues.challenge_id,
+          },
+        }
+      ).then((response) => {
+        res.status(201).send("Challenge accepted");
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
 
+router.post("/challenge-decline", async (req, res) => {
+  try {
+    // const user_id = req.body.id
+    //const friend_id = req.body.friend_id
+    const user_id = req.body.user_id;
+    const friend_id = req.body.friend_id;
+    const challenge_id = req.body.challenge_id;
 
+    if (!user_id) return res.status(400).send("user not logged in");
 
+    // looks for the challenges pending where status is 0 and user_id
+    const challengeRequest = await Challengeusers.findOne({
+      where: {
+        user_id,
+        status: 0,
+        challenge_id,
+      },
+    });
 
+    console.log(challengeRequest);
 
+    // if no challenge request found then it returns the message
+    if (!challengeRequest)
+      return res.status(400).send(" No Challenge Requests Exists ");
+    //  console.log(challengeRequest.dataValues.challenge_id)
+
+    // if challenge request is found then it will update the confirmed field to 1 whitch is true
+    if (challengeRequest) {
+      challengeusers
+        .destroy({
+          where: {
+            id: challengeRequest.dataValues.id,
+          },
+        })
+        .then((response) => {
+          res.status(204).send("Challenge declined");
+        });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.get("/challenges", async (req, res) => {
+  try {
+    const user_id = req.body.user_id;
+
+    if (!user_id) return res.status(400).send("user not logged in");
+
+    const challengeExists = await Chalengeusers.findAll({
+      where: {
+        user_id,
+        status: 1,
+      },
+    }).then((challenges) => {
+      var promise = challenges.map((result) => {
+        // console.log(result.challenge_id)
+        return result.challenge_id;
+      });
+
+      Challenges.findAll({
+        where: {
+          id: promise,
+        },
+      }).then((challenges) => {
+        if (!challenges || challenges.length == 0) {
+          res.status(400).send("no challenge found");
+        } else {
+          res.status(200).json({
+            message: challenges,
+          });
+        }
+      });
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.get("/users-in-challenge", async (req, res) => {
+  try {
+    const user_id = req.body.user_id;
+    const challenge_id = req.body.challenge_id;
+
+    if (!user_id) return res.status(400).send("user not logged in");
+
+    const challengeExists = await Chalengeusers.findAll({
+      where: {
+        challenge_id,
+      },
+    }).then((usersInChallenge) => {
+      var usersInChallenge = usersInChallenge.map((result) => {
+        return result.dataValues.user_id;
+      });
+
+      User.findAll({
+        where: {
+          id: usersInChallenge,
+        },
+      }).then((users) => {
+        if (!users || users.length == 0) {
+          res.status(400).send("challenge dont exist");
+        } else {
+          res.status(200).json({
+            message: users,
+          });
+        }
+      });
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.get("/challenges-pending", async (req, res) => {
+  try {
+    const user_id = req.body.user_id;
+    // const user_id = 21
+
+    if (!user_id) return res.status(400).send("user not logged in");
+
+    // find all pending friends where the user id is either user_id1 or user_id2 & confirmed is set true
+    Challengeusers.findAll({
+      where: {
+         user_id, status: 0
+      },
+    }).then((challengesPending) => {
+      // returns all ids
+      var promise = challengesPending.map((challenge) => {
+        return challenge.dataValues.id
+      });
+
+      // // merges the ids into one arrray
+      var challengeIds = [].concat.apply([], promise);
+
+      console.log(challengeIds)
+
+      //finds the ids of the pending challenes and return to client
+      Challenges.findAll({
+        where: {
+          id: challengeIds,
+        },
+      }).then((challengeList) => {
+        if(!challengeList || challengeList.length == 0){
+          res.status(400).send("No pending challenges found");
+        }else{
+          res.status(200).json({
+            pendingChallenges: challengeList,
+          });
+        }
+
+      });
+
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 module.exports = router;

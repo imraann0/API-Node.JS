@@ -21,6 +21,13 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      sent_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+
+      createdAt: Sequelize.DATE,
+      updatedAt: Sequelize.DATE
       
       
 
