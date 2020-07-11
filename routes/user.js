@@ -243,10 +243,8 @@ router.get("/friends", async (req, res) => {
           id: friendPendingIds,
         },
       }).then((friendlist) => {
-        if (!friendslist || friendlist.length == 0) {
-          res.status(204).send({
-            message: "no friends found",
-          });
+        if (!friendlist || friendlist.length == 0) {
+          res.status(400).send("No friends found ");
         } else {
           res.status(200).send({
             message: friendlist,
@@ -292,9 +290,13 @@ router.get("/friends-pending", async (req, res) => {
           id: friendPendingIds,
         },
       }).then((friendlist) => {
-        res.status(200).send({
+        if(!friendlist || friendlist.length == 0){
+          res.status(400).send("No pending friends ");
+      }else{
+        res.status(200).json({
           friends: friendlist,
         });
+      }
       });
     });
   } catch (error) {
@@ -433,8 +435,8 @@ router.post("/friend-reject", async (req, res) => {
           id: friendRequested.id,
         },
       }).then((response) => {
-        res.status(204).send("Friend request rejected");
-
+        console.log("here")
+        res.send("Request deleted");
       });
     }
   } catch (error) {
@@ -479,7 +481,8 @@ router.post("/unfriend", async (req, res) => {
           id: friendExists[0].id,
         },
       }).then((response) => {
-        res.status(204).send("friend removed");
+        // return res.status(204).send(" friend removed ");
+        res.send("friend removed")
       });
     }
   } catch (error) {
