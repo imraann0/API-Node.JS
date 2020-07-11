@@ -10,14 +10,12 @@ const verify = require("./verifyToken");
 const Location = require("../models/location");
 const Friends = require("../models/friends");
 const Challenges = require("../models/challenges");
-const Chalengeusers = require("../models/challengeusers");
 const { Op } = require("sequelize");
 const _ = require("lodash");
 const { response } = require("express");
 const { QueryTypes } = require("sequelize");
 const Challengeusers = require("../models/challengeusers");
 const { json } = require("body-parser");
-const challengeusers = require("../models/challengeusers");
 const { escapeRegExp } = require("lodash");
 
 router.post("/register", async (req, res) => {
@@ -520,7 +518,7 @@ router.post("/create-challenge", async (req, res) => {
       });
     }
 
-    const challengeExists = await Chalengeusers.findAll({
+    const challengeExists = await Challengeusers.findAll({
       where: {
         user_id,
         status: 1,

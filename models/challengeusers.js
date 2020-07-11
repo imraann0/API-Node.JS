@@ -25,7 +25,7 @@ module.exports = db.define('Challengeusers', {
   },
   sent_id: {
     type: Sequelize.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
 
 
