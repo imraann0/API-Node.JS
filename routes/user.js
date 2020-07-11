@@ -568,7 +568,7 @@ router.post("/invite-user-challenge", async (req, res) => {
 
     if (!user_id) return res.status(400).send("user not logged in");
 
-    const ChallengeSent = await challengeusers.findOne({
+    const ChallengeSent = await Challengeusers.findOne({
       where: {
         user_id: friend_id,
         challenge_id,
@@ -596,19 +596,19 @@ router.post("/invite-user-challenge", async (req, res) => {
     }
     // check if the user logged in is the one who sent the invite request, if so, and they hit the same endpoint again then it will remove the request(delete the pending invite request)
     else if (ChallengeSent.dataValues.sent_id === user_id) {
-      challengeusers
+      Challengeusers
         .destroy({
           where: {
             id: ChallengeSent.id,
           },
         })
         .then((response) => {
-          res.status(204).send("Invite deleted");
+          res.send("Invite deleted");
         });
     }
     // if its not the logged in user then the request has already been made by another user so it will be in the users pending to accept or decline friends
     else {
-      res.status(400).send("Request pending, check pending tab");
+      res.status(400).send("Request to join has aleady been sent to this person");
     }
   } catch (error) {
     console.log(error);
