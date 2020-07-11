@@ -42,8 +42,10 @@ db.authenticate()
 // import routes
 userRoute = require('./routes/user')
 
+
 //route middlewear
 app.use('/api/user', userRoute)
+
 
 app.listen(port)
 

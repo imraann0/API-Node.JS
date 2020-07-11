@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize')
 const db = require('../database/db')
 
-module.exports = db.define('Rating', {
+module.exports = db.define('Likes', {
   id: {
     type: Sequelize.INTEGER(11),
     allowNull: false

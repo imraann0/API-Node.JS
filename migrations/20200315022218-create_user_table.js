@@ -9,17 +9,21 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true
       },
-
+    
       first_name: {
         type: Sequelize.STRING,
         allowNull: false
       },
-
+    
       last_name: {
         type: Sequelize.STRING,
         allowNull: false
       },
-
+    
+      dob: {
+        type: Sequelize.DATE,
+        allowNull: false
+      },
       email: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -28,20 +32,35 @@ module.exports = {
           isEmail: true
         }
       },
-
+    
+      username: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+      },
+    
       password: {
         type: Sequelize.STRING,
         allowNull: false
       },
-
-      locationId: {
+    
+      location_id: {
         type: Sequelize.INTEGER(11),
         allowNull: true
       },
-
-      displayPic: {
+    
+      display_pic: {
         type: Sequelize.STRING,
         allowNull: true
+      },
+      bio: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      trophy_level: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+    
       },
 
       createdAt: Sequelize.DATE,

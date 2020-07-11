@@ -1,8 +1,7 @@
 const Sequelize = require('sequelize')
 const db = require('../database/db')
-const sequelize = require('../database/db')
 
-module.exports = db.define('Comments', {
+module.exports = db.define('Challengeusers', {
   id: {
     type: Sequelize.INTEGER(11),
     allowNull: false,
@@ -10,16 +9,24 @@ module.exports = db.define('Comments', {
     autoIncrement: true
   },
 
-  userId: {
+  challenge_id: {
     type: Sequelize.STRING,
     allowNull: false
   },
-  cards_id:{
-    type: sequelize.INTEGER,
+
+  user_id: {
+    type: Sequelize.INTEGER,
     allowNull: false
+
   },
-  content: {
-    type: Sequelize.STRING,
-    allowNull: false
+  status: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
   },
+  sent_id: {
+    type: Sequelize.INTEGER,
+    allowNull: true,
+  },
+
+
 })
