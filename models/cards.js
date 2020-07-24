@@ -16,11 +16,6 @@ module.exports = db.define('Cards', {
 
   },
 
-  date: {
-    type: Sequelize.DATE,
-    allowNull: true
-
-  },
   user_id: {
     type: Sequelize.INTEGER,
     allowNull: false

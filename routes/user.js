@@ -1040,28 +1040,12 @@ router.get('/home-cards', async (req, res) => {
  
     });
 
-
-    // Cards.findAll({
-    //   // order: sequelize.random(), limit: 2, 
-    //   include: [{
-    //     model: User,
-    //  required: true,
-    //    }]
-    // }).then(cards => {
-
-    //   cards = cards.reverse()
-
-    //   res.json({
-    //     cards
-    //   })
-    // });
-
   } catch (error) {
     console.log(error)
   }
 })
 
-router.get('/commentCards/:id', async (req, res) => {
+router.get('/cardComments/:id', async (req, res) => {
   try {
 
     const user_id = req.body.user_id
@@ -1093,7 +1077,6 @@ router.get('/commentCards/:id', async (req, res) => {
     console.log(error)
   }
 })
-
 
 router.post('/comment/:id', async (req, res) => {
   try {
