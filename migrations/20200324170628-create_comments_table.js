@@ -8,19 +8,21 @@ module.exports = {
         allowNull: false
       },
 
-      userId: {
+      user_id: {
         type: Sequelize.STRING,
         allowNull: false
       },
 
-      text: {
+      card_id: {
         type: Sequelize.STRING,
         allowNull: false
       },
 
-      userRating: {
-        type: Sequelize.INTEGER(11)
+      content: {
+        type: Sequelize.STRING,
+        allowNull: false
       },
+
 
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE

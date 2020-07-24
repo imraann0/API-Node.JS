@@ -10,14 +10,16 @@ module.exports = db.define('Comments', {
     autoIncrement: true
   },
 
-  userId: {
+  user_id : {
     type: Sequelize.STRING,
     allowNull: false
   },
-  cards_id:{
-    type: sequelize.INTEGER,
+
+  card_id: {
+    type: Sequelize.STRING,
     allowNull: false
   },
+
   content: {
     type: Sequelize.STRING,
     allowNull: false

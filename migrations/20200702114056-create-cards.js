@@ -9,11 +9,6 @@ module.exports = {
         autoIncrement: true
       },
     
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-    
       content: {
         type: Sequelize.STRING,
         allowNull: false
@@ -24,6 +19,19 @@ module.exports = {
         allowNull: true
     
       },
+      user_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      likes: {
+        type: Sequelize.INTEGER,
+        allowNull: true
+      },
+      comments: {
+        type: Sequelize.INTEGER,
+        allowNull: true
+      },
+      
       
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE

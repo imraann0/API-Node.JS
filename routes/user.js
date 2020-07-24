@@ -16,7 +16,15 @@ const { response } = require('express')
 const { QueryTypes } = require('sequelize')
 const Challengeusers = require('../models/challengeusers')
 const { json } = require('body-parser')
-const { escapeRegExp } = require('lodash')
+const { escapeRegExp, result, conforms } = require('lodash')
+const users = require('../models/users')
+const friends = require('../models/friends')
+const Cards = require('../models/cards')
+const Comments = require('../models/comments')
+const Usercomments = require('../models/usercomments')
+const usercomments = require('../models/usercomments')
+const sequelize = require('../database/db')
+
 
 router.post('/register', async (req, res) => {
   console.log(req.body)
@@ -209,10 +217,10 @@ router.post('/bio', async (req, res) => {
   })
 })
 
-router.get('/:id/friends', async (req, res) => {
+router.get('/friends', async (req, res) => {
   try {
     console.log('body', req.params)
-    const user_id = req.params.id //req.body.user_id
+    const user_id =  req.body.user_id
     // const user_id = 9
 
     console.log('HELLO')
@@ -710,15 +718,16 @@ router.post('/challenge-decline', async (req, res) => {
   }
 })
 
-router.get('/challenges', async (req, res) => {
+router.get('/challenges/:id', async (req, res) => {
   try {
     const user_id = req.body.user_id
+    const id = req.params.id
 
     if (!user_id) return res.status(400).json('user not logged in')
 
-    const challengeExists = await Chalengeusers.findAll({
+    const challengeExists = await Challengeusers.findAll({
       where: {
-        user_id,
+        user_id: id,
         status: 1
       }
     }).then(challenges => {
@@ -824,5 +833,319 @@ router.get('/challenges-pending', async (req, res) => {
     console.log(error)
   }
 })
+
+router.get('/userProfile/:id', async (req, res) => {
+  try {
+
+    const user_id = req.body.user_id
+    // const user_id = 21
+
+    if (!user_id) return res.status(400).json('user not logged in')
+
+    const id = req.params.id
+
+    users.findOne({
+      where:{
+        id
+      }
+    }).then(user => {
+
+      Friends.findAll({
+        where: {
+          [Op.or]: [{ user_id1: user.id }, { user_id2: user.id }],
+          [Op.and]: [{ confirmed: 1 }]
+        }
+      })
+      
+      .then(friendslist => {
+        // returns all ids
+        var promise = friendslist.map(friend => {
+          var user_id1 = friend.dataValues.user_id1
+          var user_id2 = friend.dataValues.user_id2
+          return [user_id1, user_id2]
+        })
+  
+        // merges the ids into one arrray
+        var mergedIds = [].concat.apply([], promise)
+  
+        // removes the userid from the list
+        const friendPendingIds = _.without(mergedIds, user.id)
+        console.log('friends ids only', friendPendingIds)
+
+        User.findAll({
+          where: {
+            id: friendPendingIds
+          }
+        }).then(function (friendsList) {
+
+            Challengeusers.findAll({
+            where: {
+              user_id: user.id,
+              status: 1
+            }
+          }).then(challenges => {
+            var promise = challenges.map(result => {
+              // console.log(result.challenge_id)
+              return result.challenge_id
+            })
+      
+            Challenges.findAll({
+              where: {
+                id: promise
+              }
+            }).then(challenges => {
+      
+              user = JSON.parse(JSON.stringify(user));
+
+              user.friendsList = friendsList
+              user.challenges  = challenges
+    
+                return res.status(200).json({
+                  user: user
+                })
+                    
+
+            })
+          })
+              
+
+        })
+
+
+    })
+
+
+  })
+
+
+  } catch (error) {
+    console.log(error)
+  }
+})
+
+
+router.get('/friends/:id', async (req, res) => {
+  try {
+    console.log('body', req.params)
+    const user_id =  req.params.id
+    const id = req.params.id
+    // const user_id = 9
+
+    console.log('HELLO')
+
+    if (!user_id) return res.status(400).json({ error: 'user not logged in' })
+
+    // find all friends where the user id is either user_id1 or user_id2 & confirmed is set true
+    console.log('FIND FIRENDs')
+    Friends.findAll({
+      where: {
+        [Op.or]: [{ user_id1: id }, { user_id2: id }],
+        [Op.and]: [{ confirmed: 1 }]
+      }
+    }).then(friendslist => {
+      // returns all ids
+      var promise = friendslist.map(friend => {
+        var user_id1 = friend.dataValues.user_id1
+        var user_id2 = friend.dataValues.user_id2
+        return [user_id1, user_id2]
+      })
+
+      // merges the ids into one arrray
+      var mergedIds = [].concat.apply([], promise)
+    
+      console.log("merged ids", mergedIds)
+
+      // removes the userid from the list
+      const friendPendingIds = _.without(mergedIds, id)
+      console.log('friends ids only', friendPendingIds)
+
+      //finds the ids of the friends and returns to client
+      User.findAll({
+        where: {
+          id: friendPendingIds
+        }
+      }).then(friendlist => {
+        if (!friendlist || friendlist.length == 0) {
+          console.log('NO FROENDS')
+          res.status(400).json({ error: 'No friends found ' })
+        } else {
+          res.status(200).json({
+            message: friendlist
+          })
+        }
+      })
+    })
+  } catch (error) {
+    console.log(error)
+  }
+})
+
+router.post('/card', async (req, res) => {
+  try {
+
+    const user_id = req.body.user_id
+    // const user_id = 21
+
+    if (!user_id) return res.status(400).json('user not logged in')
+
+    async function createCard() {
+
+      const card = new Cards({
+        user_id: req.body.user_id,
+        content: req.body.content,
+      })
+      const savedCard = await card.save().then(function (result) {
+        res.status(201).json('card made')
+        return result
+      })
+
+    }
+
+    createCard()
+
+  } catch (error) {
+    console.log(error)
+  }
+})
+
+router.get('/home-cards', async (req, res) => {
+  try {
+
+    const user_id = req.body.user_id
+    // const user_id = 21
+
+    if (!user_id) return res.status(400).json('user not logged in')
+
+    Cards.belongsTo(User, {foreignKey: 'user_id'})
+    // Cards.hasMany(Comments,  {foreignKey: 'card_id'})
+
+    Cards.findAll({
+      // order: sequelize.random(), limit: 1, 
+      include: [
+        {
+          model: User, 
+          required: true,
+         },
+      //   {
+      //   model: Comments, 
+      //   required: true,
+      //  },
+      ]
+    }).then(cards => {
+      cards = cards.reverse()
+      res.status(200).json({
+        message: cards
+        
+      })
+ 
+    });
+
+
+    // Cards.findAll({
+    //   // order: sequelize.random(), limit: 2, 
+    //   include: [{
+    //     model: User,
+    //  required: true,
+    //    }]
+    // }).then(cards => {
+
+    //   cards = cards.reverse()
+
+    //   res.json({
+    //     cards
+    //   })
+    // });
+
+  } catch (error) {
+    console.log(error)
+  }
+})
+
+router.get('/commentCards/:id', async (req, res) => {
+  try {
+
+    const user_id = req.body.user_id
+    card_id = req.params.id
+    // const user_id = 21
+
+    if (!user_id) return res.status(400).json('user not logged in')
+
+    // User.hasMany(Cards,  {foreignKey: 'user_id'})
+    Comments.belongsTo(User, {foreignKey: 'user_id'})
+
+    Comments.findAll({
+      where: { card_id },
+      include: [{
+        model: User,
+     required: true,
+       }] 
+    }).then(comments => {
+      
+      comments = comments.reverse()
+      var length = comments.length
+
+      res.json({
+        "comments": comments, length
+      })
+    });
+
+  } catch (error) {
+    console.log(error)
+  }
+})
+
+
+router.post('/comment/:id', async (req, res) => {
+  try {
+
+    const user_id = req.body.user_id
+    const card_id = req.params.id
+    const content = req.body.content
+
+    // const post_id = req.params.id
+    // const user_id = 21
+
+    if (!user_id) return res.status(400).json('user not logged in')
+    if (!card_id) return res.status(400).json('Card no longer avilable')
+
+
+      const comment = new Comments({
+        user_id,
+        content, 
+        card_id,
+      })
+      const savedComment = await comment.save().then(function (result) {
+        // res.status(201).json('comment made')
+        return result
+      })
+
+      await Comments.findAll({
+        where:{
+          card_id: savedComment.dataValues.card_id
+        }
+      }).then (comments => {
+
+        var commentsAmount = comments.length
+        var card_id = savedComment.dataValues.card_id
+
+        Cards.update({
+          comments: commentsAmount
+        },
+        {where:{
+          id: card_id
+        }}).then(response =>{
+          res.status(201).json({
+            message: "Comment Made"
+          })
+        })
+      })
+
+  } catch (error) {
+    console.log(error)
+  }
+})
+
+
+
 
 module.exports = router

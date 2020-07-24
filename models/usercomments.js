@@ -1,39 +1,21 @@
 const Sequelize = require('sequelize')
 const db = require('../database/db')
 
-module.exports = db.define('Cards', {
+module.exports = db.define('usercomments', {
   id: {
     type: Sequelize.INTEGER(11),
     allowNull: false,
     primaryKey: true,
     autoIncrement: true
-
   },
 
-  content: {
-    type: Sequelize.STRING,
-    allowNull: false
-
-  },
-
-  date: {
-    type: Sequelize.DATE,
-    allowNull: true
-
-  },
   user_id: {
     type: Sequelize.INTEGER,
     allowNull: false
   },
-  likes: {
+  post_id: {
     type: Sequelize.INTEGER,
-    allowNull: true
-  },
-  comments: {
-    type: Sequelize.INTEGER,
-    allowNull: true
+    allowNull: false
   },
   
-
-
 })
