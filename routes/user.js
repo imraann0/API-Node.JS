@@ -21,8 +21,6 @@ const users = require('../models/users')
 const friends = require('../models/friends')
 const Cards = require('../models/cards')
 const Comments = require('../models/comments')
-const Usercomments = require('../models/usercomments')
-const usercomments = require('../models/usercomments')
 const sequelize = require('../database/db')
 
 
@@ -834,7 +832,7 @@ router.get('/challenges-pending', async (req, res) => {
   }
 })
 
-router.get('/userProfile/:id', async (req, res) => {
+router.get('/user-profile/:id', async (req, res) => {
   try {
 
     const user_id = req.body.user_id
@@ -902,18 +900,11 @@ router.get('/userProfile/:id', async (req, res) => {
     
                 return res.status(200).json({
                   user: user
-                })
-                    
-
+                })          
             })
-          })
-              
-
+          })           
         })
-
-
     })
-
 
   })
 
@@ -980,6 +971,8 @@ router.get('/friends/:id', async (req, res) => {
   }
 })
 
+
+
 router.post('/card', async (req, res) => {
   try {
 
@@ -1012,18 +1005,21 @@ router.get('/home-cards', async (req, res) => {
   try {
 
     const user_id = req.body.user_id
-    // const user_id = 21
 
     if (!user_id) return res.status(400).json('user not logged in')
 
     Cards.belongsTo(User, {foreignKey: 'user_id'})
     // Cards.hasMany(Comments,  {foreignKey: 'card_id'})
 
+
     Cards.findAll({
       // order: sequelize.random(), limit: 1, 
+      // attributes : attributes,
+
       include: [
         {
           model: User, 
+          attributes: ['first_name', 'username', 'display_pic', ],
           required: true,
          },
       //   {
@@ -1045,7 +1041,7 @@ router.get('/home-cards', async (req, res) => {
   }
 })
 
-router.get('/cardComments/:id', async (req, res) => {
+router.get('/card-comments/:id', async (req, res) => {
   try {
 
     const user_id = req.body.user_id
@@ -1059,8 +1055,10 @@ router.get('/cardComments/:id', async (req, res) => {
 
     Comments.findAll({
       where: { card_id },
+      attributes: ['content', 'createdAt', 'updatedAt', ],
       include: [{
         model: User,
+        attributes: ['first_name', 'username', 'display_pic', ],
      required: true,
        }] 
     }).then(comments => {
