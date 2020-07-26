@@ -8,8 +8,16 @@ module.exports = {
         allowNull: false
       },
 
-      userId: {
-        type: Sequelize.STRING,
+      user_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      card_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      comment_id: {
+        type: Sequelize.INTEGER,
         allowNull: false
       },
 
