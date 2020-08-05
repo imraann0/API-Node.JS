@@ -990,11 +990,11 @@ router.post("/card", async (req, res) => {
   }
 });
 
-router.get("/home-cards", async (req, res) => {
+router.get("/cards", async (req, res) => {
   try {
     const user_id = req.body.user_id;
 
-    if (!user_id) return res.status(400).json("user not logged in");
+    // if (!user_id) return res.status(400).json("user not logged in");
 
     Cards.belongsTo(User, { foreignKey: "user_id" });
     // Cards.hasMany(Comments,  {foreignKey: 'card_id'})
@@ -1023,20 +1023,20 @@ router.get("/home-cards", async (req, res) => {
   }
 });
 
-router.get("/card-comments/:id", async (req, res) => {
+router.get("/cards/comment/:id", async (req, res) => {
   try {
     const user_id = req.body.user_id;
     card_id = req.params.id;
     // const user_id = 21
 
-    if (!user_id) return res.status(400).json("user not logged in");
+    // if (!user_id) return res.status(400).json("user not logged in");
 
     // User.hasMany(Cards,  {foreignKey: 'user_id'})
     Comments.belongsTo(User, { foreignKey: "user_id" });
 
     Comments.findAll({
       where: { card_id },
-      attributes: ["content", "createdAt", "updatedAt"],
+      attributes: ["id", "content", "createdAt", "updatedAt"],
       include: [
         {
           model: User,
@@ -1067,8 +1067,8 @@ router.post("/comment/:card_id", async (req, res) => {
     // const post_id = req.params.id
     // const user_id = 21
 
-    if (!user_id) return res.status(400).json("user not logged in");
-    if (!card_id) return res.status(400).json("Card no longer avilable");
+    // if (!user_id) return res.status(400).json("user not logged in");
+    // if (!card_id) return res.status(400).json("Card no longer avilable");
 
     const comment = new Comments({
       user_id,
@@ -1128,7 +1128,7 @@ router.post("/like/:card_id", async (req, res) => {
           },
         }).then((likes) => {
           var likesAmount = likes.length;
-  
+
           Cards.update(
             {
               likes: likesAmount,
@@ -1143,10 +1143,10 @@ router.post("/like/:card_id", async (req, res) => {
               message: "Like Made",
             });
           });
-        });      
-      })
+        });
+      });
     }
-
+    
 
     await Likes.findOne({
       where: {
@@ -1157,21 +1157,20 @@ router.post("/like/:card_id", async (req, res) => {
       if (!likes || likes.length === 0) {
         createLike();
       } else if (likes.id) {
-        
         Likes.destroy({
           where: {
             id: likes.id,
           },
         });
-    
+
         Likes.findAll({
           where: {
             card_id,
           },
         }).then((likes) => {
           var likesAmount = likes.length;
-    
-            Cards.update(
+
+          Cards.update(
             {
               likes: likesAmount,
             },
