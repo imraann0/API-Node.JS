@@ -12,7 +12,9 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001')
+  res.setHeader('Access-Control-Allow-Origin', 'https://imraann0.co.uk')
+  // res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001')
+
 
   // Request methods you wish to allow
   res.setHeader(
@@ -22,6 +24,8 @@ app.use(function (req, res, next) {
 
   // Request headers you wish to allow
   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type')
+
+  
 
   // Set to true if you need the website to include cookies in the requests sent
   // to the API (e.g. in case you use sessions)

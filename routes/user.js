@@ -630,13 +630,14 @@ router.post("/invite-user-challenge", async (req, res) => {
   }
 });
 
-router.post("/challenge-accept", async (req, res) => {
+router.post("/challenge-accept/:userId/:challengeId", async (req, res) => {
   try {
     // const user_id = req.body.id
     //const friend_id = req.body.friend_id
-    const user_id = req.body.user_id;
-    const friend_id = req.body.friend_id;
-    const challenge_id = req.body.challenge_id;
+    // const user_id = req.body.user_id;
+    const user_id = req.params.userId;
+    const challenge_id = req.params.challengeId;
+
 
     if (!user_id) return res.status(400).json("user not logged in");
 
@@ -664,7 +665,7 @@ router.post("/challenge-accept", async (req, res) => {
         },
         {
           where: {
-            id: challengeRequest.dataValues.challenge_id,
+            id: challengeRequest.dataValues.id,
           },
         }
       ).then((response) => {
@@ -676,13 +677,12 @@ router.post("/challenge-accept", async (req, res) => {
   }
 });
 
-router.post("/challenge-decline", async (req, res) => {
+router.post("/challenge-decline/:userId/:challengeId", async (req, res) => {
   try {
     // const user_id = req.body.id
     //const friend_id = req.body.friend_id
-    const user_id = req.body.user_id;
-    const friend_id = req.body.friend_id;
-    const challenge_id = req.body.challenge_id;
+    const user_id = req.params.userId;
+    const challenge_id = req.params.challengeId;
 
     if (!user_id) return res.status(400).json("user not logged in");
 
@@ -695,7 +695,6 @@ router.post("/challenge-decline", async (req, res) => {
       },
     });
 
-    console.log(challengeRequest);
 
     // if no challenge request found then it returns the message
     if (!challengeRequest)
@@ -704,7 +703,7 @@ router.post("/challenge-decline", async (req, res) => {
 
     // if challenge request is found then it will update the confirmed field to 1 whitch is true
     if (challengeRequest) {
-      challengeusers
+      Challengeusers
         .destroy({
           where: {
             id: challengeRequest.dataValues.id,
@@ -719,38 +718,46 @@ router.post("/challenge-decline", async (req, res) => {
   }
 });
 
+
 router.get("/challenges/:id", async (req, res) => {
+  // i think this is approved challenges 
   try {
+
     const user_id = req.body.user_id;
     const id = req.params.id;
 
-    if (!user_id) return res.status(400).json("user not logged in");
+    // if (!user_id) return res.status(400).json("user not logged in");
+
+    Challengeusers.belongsTo(Challenges, { foreignKey: "challenge_id" });
+    Challengeusers.belongsTo(User, { foreignKey: "sent_id" });
+
 
     const challengeExists = await Challengeusers.findAll({
       where: {
         user_id: id,
         status: 1,
       },
+        include: [
+          {
+            model: Challenges,
+            attributes: ["id", "content", "date", "type", "createdAt", "UpdatedAt"],
+            required: true,
+          },
+            {
+            model: User,
+            attributes: ["first_name", "username", "display_pic"],
+            required: true,
+          },
+        ],      
     }).then((challenges) => {
-      var promise = challenges.map((result) => {
-        // console.log(result.challenge_id)
-        return result.challenge_id;
-      });
-
-      Challenges.findAll({
-        where: {
-          id: promise,
-        },
-      }).then((challenges) => {
         if (!challenges || challenges.length == 0) {
           res.status(400).json("no challenge found");
         } else {
           res.status(200).json({
-            message: challenges,
+            challenges
           });
         }
       });
-    });
   } catch (error) {
     console.log(error);
   }
@@ -763,40 +770,76 @@ router.get("/users-in-challenge", async (req, res) => {
 
     if (!user_id) return res.status(400).json("user not logged in");
 
-    const challengeExists = await Chalengeusers.findAll({
+    
+    // Challengeusers.belongsTo(Challenges, { foreignKey: "challenge_id" });
+    Challengeusers.belongsTo(User, { foreignKey: "sent_id", });
+    Challengeusers.belongsTo(User, { foreignKey: "user_id" });
+
+
+
+    const challengeExists = await Challengeusers.findAll({
       where: {
         challenge_id,
+        status: 1
       },
-    }).then((usersInChallenge) => {
-      var usersInChallenge = usersInChallenge.map((result) => {
-        return result.dataValues.user_id;
-      });
-
-      User.findAll({
-        where: {
-          id: usersInChallenge,
+      attributes: ["id",],
+      include: [
+          {
+          model: User,
+          attributes: ["first_name", "username", "display_pic"],
+          required: true,
         },
-      }).then((users) => {
-        if (!users || users.length == 0) {
-          res.status(400).json("challenge dont exist");
+      ], 
+    }).then((usersInChallenge) => {
+
+      
+      if (!usersInChallenge || usersInChallenge.length == 0) {
+          res.status(400).json("no users in challenge");
         } else {
           res.status(200).json({
-            message: users,
-          });
+            message: usersInChallenge
+          }); 
         }
-      });
-    });
+      })
+
+
+
+      // var usersInChallenge = usersInChallenge.map((result) => {
+      //   return result.dataValues.user_id;
+      // });
+
+      // User.findAll({
+      //   where: {
+      //     id: usersInChallenge,
+      //   },
+      // }).then((users) => {
+      //   if (!users || users.length == 0) {
+      //     res.status(400).json("challenge dont exist");
+      //   } else {
+      //     res.status(200).json({
+      //       message: users,
+      //     });
+      //   }
+      // });
+    // });
   } catch (error) {
     console.log(error);
   }
 });
 
-router.get("/challenges-pending", async (req, res) => {
+router.get("/challenges-pending/:id", async (req, res) => {
+
   try {
-    const user_id = req.body.user_id;
+
+    const user_id = req.params.id;
+
     // const user_id = 21
 
-    if (!user_id) return res.status(400).json("user not logged in");
+    // if (!user_id) return res.status(400).json("user not logged in");
+
+    Challengeusers.belongsTo(Challenges, { foreignKey: "challenge_id" });
+    Challengeusers.belongsTo(User, { foreignKey: "sent_id" });
+
 
     // find all pending friends where the user id is either user_id1 or user_id2 & confirmed is set true
     Challengeusers.findAll({
@@ -804,38 +847,76 @@ router.get("/challenges-pending", async (req, res) => {
         user_id,
         status: 0,
       },
-    }).then((challengesPending) => {
-      // returns all ids
-      var promise = challengesPending.map((challenge) => {
-        return challenge.dataValues.id;
-      });
-
-      // // merges the ids into one arrray
-      var challengeIds = [].concat.apply([], promise);
-
-      console.log(challengeIds);
-
-      //finds the ids of the pending challenes and return to client
-      Challenges.findAll({
-        where: {
-          id: challengeIds,
+      include: [
+        {
+          model: Challenges,
+          attributes: ["id", "content", "date", "type", "createdAt", "UpdatedAt"],
+          required: true,
         },
-      }).then((challengeList) => {
-        if (!challengeList || challengeList.length == 0) {
-          res.status(400).json("No pending challenges found");
-        } else {
-          res.status(200).json({
-            pendingChallenges: challengeList,
-          });
-        }
-      });
-    });
+          {
+          model: User,
+          attributes: ["first_name", "username", "display_pic"],
+          required: true,
+         },
+      ],
+    }).then((challengesPending) => {
+
+      if(!challengesPending || challengesPending.length == 0){
+
+      res.status(400).json("No Pending Challenges")
+
+      }else{
+        res.status(201).json( challengesPending)
+
+      }
+
+    })
+
+    
+    // // find all pending friends where the user id is either user_id1 or user_id2 & confirmed is set true
+    // Challengeusers.findAll({
+    //   where: {
+    //     user_id,
+    //     status: 0,
+    //   },
+    // }).then((challengesPending) => {
+
+
+    //   // returns all ids
+    //   var promise = challengesPending.map((challenge) => {
+    //     return challenge.dataValues.id;
+    //   });
+
+
+    //   // // merges the ids into one arrray
+    //   var challengeIds = [].concat.apply([], promise);
+
+    //   console.log(challengeIds);
+
+    //   //finds the ids of the pending challenes and return to client
+    //   Challenges.findAll({
+    //     where: {
+    //       id: challengeIds,
+    //     },
+    //   }).then((challengeList) => {
+    //     if (!challengeList || challengeList.length == 0) {
+    //       res.status(400).json("No pending challenges found");
+    //     } else {
+    //       res.status(200).json({
+    //         pendingChallenges: challengeList,
+    //       });
+    //     }
+    //   });
+    // });
+
+
   } catch (error) {
     console.log(error);
   }
 });
 
 router.get("/user-profile/:id", async (req, res) => {
+
   try {
     const user_id = req.body.user_id;
     // const user_id = 21
@@ -908,9 +989,11 @@ router.get("/user-profile/:id", async (req, res) => {
   } catch (error) {
     console.log(error);
   }
+
 });
 
 router.get("/friends/:id", async (req, res) => {
+
   try {
     console.log("body", req.params);
     const user_id = req.params.id;
@@ -964,6 +1047,7 @@ router.get("/friends/:id", async (req, res) => {
   } catch (error) {
     console.log(error);
   }
+
 });
 
 router.post("/card", async (req, res) => {
@@ -988,9 +1072,11 @@ router.post("/card", async (req, res) => {
   } catch (error) {
     console.log(error);
   }
+
 });
 
 router.get("/cards", async (req, res) => {
+
   try {
     const user_id = req.body.user_id;
 
@@ -1021,7 +1107,37 @@ router.get("/cards", async (req, res) => {
   } catch (error) {
     console.log(error);
   }
+
 });
+
+router.get("/cards/:userId", async (req, res) => {
+
+  try {
+    // const user_id = req.body.user_id;
+    const user_id = req.params.userId;
+
+
+    // if (!user_id) return res.status(400).json("user not logged in");
+
+    Cards.belongsTo(User, { foreignKey: "user_id" });
+    // Cards.hasMany(Comments,  {foreignKey: 'card_id'})
+
+    Cards.findAll({
+      where: {
+        user_id
+      }
+    }).then((cards) => {
+      cards = cards.reverse();
+      res.status(200).json({
+         cards,
+      });
+    });
+  } catch (error) {
+    console.log(error);
+  }
+
+});
+
 
 router.get("/cards/comment/:id", async (req, res) => {
   try {
@@ -1181,7 +1297,7 @@ router.post("/like/:card_id", async (req, res) => {
             }
           ).then((response) => {
             res.status(201).json({
-              message: "Unlked",
+              message: "Unliked",
             });
           });
         });
