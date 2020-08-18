@@ -26,6 +26,10 @@ const Likes = require("../models/likes");
 const sequelize = require("../database/db");
 const cards = require("../models/cards");
 
+// router.get('/', (req, res) => {
+//   console.log("server is runing")
+// })
+
 router.post("/register", async (req, res) => {
   console.log(req.body);
   //Validate Data
