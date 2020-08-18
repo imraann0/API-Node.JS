@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "islam api",
   "main": "index.js",
+  "engines": {
+    "node": "10.16.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "author": "",
   "license": "ISC",
@@ -27,4 +30,5 @@
   "devDependencies": {
     "sequelize-cli": "^5.5.1"
   }
+  
 }
