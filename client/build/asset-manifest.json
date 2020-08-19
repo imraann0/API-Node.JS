@@ -1,0 +1,31 @@
+{
+  "files": {
+    "main.css": "/static/css/main.8a3371eb.chunk.css",
+    "main.js": "/static/js/main.4bc8bc89.chunk.js",
+    "main.js.map": "/static/js/main.4bc8bc89.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.549be430.js",
+    "runtime-main.js.map": "/static/js/runtime-main.549be430.js.map",
+    "static/js/2.74437539.chunk.js": "/static/js/2.74437539.chunk.js",
+    "static/js/2.74437539.chunk.js.map": "/static/js/2.74437539.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.7b555dd1942206ee25ec88bebdd1dfa8.js": "/precache-manifest.7b555dd1942206ee25ec88bebdd1dfa8.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/main.8a3371eb.chunk.css.map": "/static/css/main.8a3371eb.chunk.css.map",
+    "static/js/2.74437539.chunk.js.LICENSE.txt": "/static/js/2.74437539.chunk.js.LICENSE.txt",
+    "static/media/Facebook-Icon.svg": "/static/media/Facebook-Icon.297438d9.svg",
+    "static/media/Instagram-Icon.svg": "/static/media/Instagram-Icon.5f4bc862.svg",
+    "static/media/Logo.svg": "/static/media/Logo.6d2404e7.svg",
+    "static/media/Twitter-Icon.svg": "/static/media/Twitter-Icon.2d2ca12e.svg",
+    "static/media/my-fasts-icon.svg": "/static/media/my-fasts-icon.a9139b03.svg",
+    "static/media/my-prayers-icon.svg": "/static/media/my-prayers-icon.42c6ea93.svg",
+    "static/media/other-icon.svg": "/static/media/other-icon.96c1017d.svg",
+    "static/media/profile-level.png": "/static/media/profile-level.81a354a2.png",
+    "static/media/quran-icon.svg": "/static/media/quran-icon.26f6a87b.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.549be430.js",
+    "static/js/2.74437539.chunk.js",
+    "static/css/main.8a3371eb.chunk.css",
+    "static/js/main.4bc8bc89.chunk.js"
+  ]
+}
