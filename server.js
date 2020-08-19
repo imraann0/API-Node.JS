@@ -10,6 +10,9 @@ app.use(cors())
 app.options('*', cors())
 app.use(bodyParser.urlencoded({ extended: false }))
 
+const path = require('path');
+
+
 
 
   app.use(express.static('build'));

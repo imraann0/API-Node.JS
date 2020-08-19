@@ -157,9 +157,9 @@ router.post("/login", async (req, res) => {
   if (!user) return res.status(400).json({ error: "Email does not Exists" });
 
   // check if password is corrrect
-  const validPassword = await bcrypt.compare(req.body.password, user.password);
-  if (!validPassword)
-    return res.status(400).json({ error: "invalid password" });
+  // const validPassword = await bcrypt.compare(req.body.password, user.password);
+  // if (!validPassword)
+  //   return res.status(400).json({ error: "invalid password" });
 
   // // send user
   // res.json({ username: user })
@@ -1082,7 +1082,7 @@ router.post("/card", async (req, res) => {
 router.get("/cards", async (req, res) => {
 
   try {
-    const user_id = req.body.user_id;
+    // const user_id = req.body.user_id;
 
     // if (!user_id) return res.status(400).json("user not logged in");
 
