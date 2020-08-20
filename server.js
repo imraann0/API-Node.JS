@@ -15,19 +15,22 @@ const path = require('path');
 
 
 
-  app.use(express.static('build'));
+//   app.use(express.static('build'));
 
-  app.get('*', (req, res) => {
-      res.sendFile(path.resolve(__dirname,'build', 'index.html'));
- });
+//   app.get('*', (req, res) => {
+//       res.sendFile(path.resolve(__dirname,'build', 'index.html'));
+//  });
 
 
+app.get("/", async (req, res) => {
+  res.send("hello world")
 
+})
 
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001')
-    // res.setHeader('Access-Control-Allow-Origin', 'https://imraann0.co.uk')
+  // res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3002')
+    res.setHeader('Access-Control-Allow-Origin', 'https://imraann0.co.uk')
 
 
   // Request methods you wish to allow

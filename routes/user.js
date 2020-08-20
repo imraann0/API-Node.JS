@@ -1082,7 +1082,7 @@ router.post("/card", async (req, res) => {
 router.get("/cards", async (req, res) => {
 
   try {
-    // const user_id = req.body.user_id;
+    const user_id = req.body.user_id;
 
     // if (!user_id) return res.status(400).json("user not logged in");
 
