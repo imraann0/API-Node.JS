@@ -222,18 +222,18 @@ router.post("/bio", async (req, res) => {
   });
 });
 
-router.get("/friends", async (req, res) => {
+router.get("/friends/:id", async (req, res) => {
   try {
     console.log("body", req.params);
-    const user_id = req.body.user_id;
-    // const user_id = 9
+    // const user_id = req.body.user_id;
+    const user_id = req.params.id
 
-    console.log("HELLO");
+
+    // const user_id = 9
 
     if (!user_id) return res.status(400).json({ error: "user not logged in" });
 
     // find all friends where the user id is either user_id1 or user_id2 & confirmed is set true
-    console.log("FIND FIRENDs");
     Friends.findAll({
       where: {
         [Op.or]: [{ user_id1: user_id }, { user_id2: user_id }],
@@ -251,11 +251,15 @@ router.get("/friends", async (req, res) => {
       var mergedIds = [].concat.apply([], promise);
 
       // removes the userid from the list
-      const friendPendingIds = _.without(mergedIds, user_id);
+      const friendPendingIds = _.without(mergedIds,  JSON.parse(user_id));
+
+      console.log(req.params.id)
+
       console.log("friends ids only", friendPendingIds);
 
       //finds the ids of the friends and returns to client
       User.findAll({
+        attributes: ["id", "first_name", "last_name", "username", "display_pic" ],
         where: {
           id: friendPendingIds,
         },
@@ -275,9 +279,12 @@ router.get("/friends", async (req, res) => {
   }
 });
 
-router.get("/friends-pending", async (req, res) => {
+router.get("/friends-pending/:id", async (req, res) => {
+
   try {
-    const user_id = req.body.user_id;
+    // const user_id = req.body.user_id;
+    const user_id = req.params.id;
+
     // const user_id = 21
 
     if (!user_id) return res.status(400).json("user not logged in");
@@ -300,10 +307,11 @@ router.get("/friends-pending", async (req, res) => {
       var mergedIds = [].concat.apply([], promise);
 
       //removes the userid from the list
-      const friendPendingIds = _.without(mergedIds, user_id);
+      const friendPendingIds = _.without(mergedIds, JSON.parse(user_id));
 
       //finds the ids of the pending friends and returns to client
       User.findAll({
+        attributes: ["id", "first_name", "last_name", "username", "display_pic" ],
         where: {
           id: friendPendingIds,
         },
