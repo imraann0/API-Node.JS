@@ -21,6 +21,10 @@ const path = require('path');
 //       res.sendFile(path.resolve(__dirname,'build', 'index.html'));
 //  });
 
+app.get("/", async (req, res) => {
+  res.send("hello world")
+
+})
 
 
 
