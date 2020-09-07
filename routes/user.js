@@ -757,7 +757,7 @@ router.get("/challenges/:id", async (req, res) => {
           },
             {
             model: User,
-            attributes: ["first_name", "username", "display_pic"],
+            attributes: [ "id", "first_name", "username", "display_pic"],
             required: true,
           },
         ],      
@@ -927,82 +927,111 @@ router.get("/challenges-pending/:id", async (req, res) => {
   }
 });
 
-router.get("/user-profile/:id", async (req, res) => {
+// router.get("/user-profile/:id", async (req, res) => {
 
-  try {
-    const user_id = req.body.user_id;
-    // const user_id = 21
+//   try {
+//     const user_id = req.body.user_id;
+//     // const user_id = 21
 
-    if (!user_id) return res.status(400).json("user not logged in");
+//     if (!user_id) return res.status(400).json("user not logged in");
 
-    const id = req.params.id;
+//     const id = req.params.id;
 
-    users
-      .findOne({
-        where: {
-          id,
-        },
-      })
-      .then((user) => {
-        Friends.findAll({
-          where: {
-            [Op.or]: [{ user_id1: user.id }, { user_id2: user.id }],
-            [Op.and]: [{ confirmed: 1 }],
-          },
-        }).then((friendslist) => {
-          // returns all ids
-          var promise = friendslist.map((friend) => {
-            var user_id1 = friend.dataValues.user_id1;
-            var user_id2 = friend.dataValues.user_id2;
-            return [user_id1, user_id2];
-          });
+//     users
+//       .findOne({
+//         where: {
+//           id,
+//         },
+//       })
+//       .then((user) => {
+//         Friends.findAll({
+//           where: {
+//             [Op.or]: [{ user_id1: user.id }, { user_id2: user.id }],
+//             [Op.and]: [{ confirmed: 1 }],
+//           },
+//         }).then((friendslist) => {
+//           // returns all ids
+//           var promise = friendslist.map((friend) => {
+//             var user_id1 = friend.dataValues.user_id1;
+//             var user_id2 = friend.dataValues.user_id2;
+//             return [user_id1, user_id2];
+//           });
 
-          // merges the ids into one arrray
-          var mergedIds = [].concat.apply([], promise);
+//           // merges the ids into one arrray
+//           var mergedIds = [].concat.apply([], promise);
 
-          // removes the userid from the list
-          const friendPendingIds = _.without(mergedIds, user.id);
-          console.log("friends ids only", friendPendingIds);
+//           // removes the userid from the list
+//           const friendPendingIds = _.without(mergedIds, user.id);
+//           console.log("friends ids only", friendPendingIds);
 
-          User.findAll({
-            where: {
-              id: friendPendingIds,
-            },
-          }).then(function (friendsList) {
-            Challengeusers.findAll({
-              where: {
-                user_id: user.id,
-                status: 1,
-              },
-            }).then((challenges) => {
-              var promise = challenges.map((result) => {
-                // console.log(result.challenge_id)
-                return result.challenge_id;
-              });
+//           User.findAll({
+//             where: {
+//               id: friendPendingIds,
+//             },
+//           }).then(function (friendsList) {
+//             Challengeusers.findAll({
+//               where: {
+//                 user_id: user.id,
+//                 status: 1,
+//               },
+//             }).then((challenges) => {
+//               var promise = challenges.map((result) => {
+//                 // console.log(result.challenge_id)
+//                 return result.challenge_id;
+//               });
 
-              Challenges.findAll({
-                where: {
-                  id: promise,
-                },
-              }).then((challenges) => {
-                user = JSON.parse(JSON.stringify(user));
+//               Challenges.findAll({
+//                 where: {
+//                   id: promise,
+//                 },
+//               }).then((challenges) => {
+//                 user = JSON.parse(JSON.stringify(user));
 
-                user.friendsList = friendsList;
-                user.challenges = challenges;
+//                 user.friendsList = friendsList;
+//                 user.challenges = challenges;
 
-                return res.status(200).json({
-                  user: user,
-                });
-              });
-            });
-          });
-        });
-      });
-  } catch (error) {
-    console.log(error);
-  }
+//                 return res.status(200).json({
+//                   user: user,
+//                 });
+//               });
+//             });
+//           });
+//         });
+//       });
+//   } catch (error) {
+//     console.log(error);
+//   }
 
-});
+// });
+
+router.get("/user-profile/:username", async(req,res) => {
+
+try {
+
+  username = req.params.username
+
+  // if (!user_id) return res.status(400).json({ error: "user not logged in" });
+
+  User.findOne({
+    attributes: [ "id", "first_name", "username", "display_pic", "bio", "trophy_level", "emaan_level" ],
+    where:{
+      username: username
+    }
+  }).then((response) =>  {
+    res.status(200).json({
+      message: response,
+    });  
+  })
+
+
+} catch (error) {
+
+  console.log("error");
+  
+}
+
+})
+
 
 router.get("/friends/:id", async (req, res) => {
 

@@ -60,5 +60,10 @@ module.exports = db.define('User', {
     type: Sequelize.INTEGER,
     allowNull: true,
 
+  },
+  emaan_level: {
+    type: Sequelize.INTEGER,
+    allowNull: true,
+
   }
 })
