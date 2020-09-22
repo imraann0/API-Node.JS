@@ -26,6 +26,12 @@ const Likes = require("../models/likes");
 const sequelize = require("../database/db");
 const cards = require("../models/cards");
 const Products = require("../models/products");
+const newOrder = require("../models/newOrder");
+const orderItems = require("../models/orderItems");
+
+const stripe = require("stripe")(
+  "sk_test_51HTwftB4BEDe4p7rCZpSriogpWiBXa3HFwMW6hhxsfynupWEDYRETBGWXePjN5lQKiN8wXPCYgE1g0q62abYfyE400AVHOENnM"
+);
 
 // router.get('/', (req, res) => {
 //   console.log("server is runing")
@@ -1361,6 +1367,97 @@ router.get("/books", async (req, res) => {
         books,
       });
     });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.post("/payments/create", async (req, res) => {
+  try {
+    const total = req.query.total;
+    console.log("payment request received", total);
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: total,
+      currency: "gbp",
+    });
+
+    res.status(201).send({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (error) {
+    console.log("error from server", error);
+  }
+});
+
+router.post("/order", async (req, res) => {
+  try {
+    async function createNewOrder() {
+      const order = new newOrder({
+        user_id: req.body.user_id,
+        order_id: req.body.order_id,
+        ammount: req.body.ammount,
+      });
+      const savedNewOrder = await order.save().then(function (result) {
+        // return result;
+      });
+    }
+    async function createNewOrderItem() {
+      basket = req.body.basket;
+
+      basket.map((basketItem) => {
+        console.log(basketItem.id);
+
+        const savedOrderItems = new orderItems({
+          order_id: req.body.order_id,
+          product_id: basketItem.id,
+          image: basketItem.image,
+          price: basketItem.price,
+          rating: basketItem.rating,
+          categorie: basketItem.categorie,
+        });
+
+        const savedNewOrder = savedOrderItems.save().then(function (result) {
+          // return result;
+        });
+      });
+    }
+
+    createNewOrder();
+    createNewOrderItem();
+  } catch (error) {
+    console.log("error from server", error);
+  }
+});
+
+router.get("/orders", async (req, res) => {
+  try {
+    const user_id = 1;
+
+    // if (!user_id) return res.status(400).json("user not logged in");
+
+    newOrder.belongsTo(orderItems, { foreignKey: "order_id" });
+    // Cards.hasMany(Comments,  {foreignKey: 'card_id'})
+
+    newOrder
+      .findAll({
+        where: {
+          user_id,
+        },
+
+        include: [
+          {
+            model: orderItems,
+            attributes: ["product_id"],
+            required: false,
+          },
+        ],
+      })
+      .then((orders) => {
+        res.status(201).json({
+          message: orders,
+        });
+      });
   } catch (error) {
     console.log(error);
   }

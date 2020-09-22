@@ -1,7 +1,7 @@
 const Sequelize = require("sequelize");
 const db = require("../database/db");
 
-module.exports = db.define("Products", {
+module.exports = db.define("orderitems", {
   id: {
     type: Sequelize.INTEGER(11),
     allowNull: false,
@@ -9,8 +9,13 @@ module.exports = db.define("Products", {
     autoIncrement: true,
   },
 
-  name: {
+  order_id: {
     type: Sequelize.STRING,
+    allowNull: false,
+  },
+
+  product_id: {
+    type: Sequelize.INTEGER,
     allowNull: false,
   },
 
@@ -30,12 +35,12 @@ module.exports = db.define("Products", {
 
   categorie: {
     type: Sequelize.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
 
   description: {
     type: Sequelize.STRING,
-    allowNull: false,
+    allowNull: true,
   },
 
   stock: {
