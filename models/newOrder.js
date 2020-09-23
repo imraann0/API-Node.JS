@@ -3,7 +3,7 @@ const db = require("../database/db");
 
 module.exports = db.define("neworders", {
   id: {
-    type: Sequelize.INTEGER(11),
+    type: Sequelize.STRING,
     allowNull: false,
     primaryKey: true,
     autoIncrement: true,

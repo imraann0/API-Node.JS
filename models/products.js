@@ -9,7 +9,7 @@ module.exports = db.define("Products", {
     autoIncrement: true,
   },
 
-  name: {
+  title: {
     type: Sequelize.STRING,
     allowNull: false,
   },

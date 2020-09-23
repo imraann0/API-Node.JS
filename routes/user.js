@@ -1430,32 +1430,112 @@ router.post("/order", async (req, res) => {
   }
 });
 
-router.get("/orders", async (req, res) => {
+router.get("/orders2", async (req, res) => {
   try {
     const user_id = 1;
 
-    // if (!user_id) return res.status(400).json("user not logged in");
-
     newOrder.belongsTo(orderItems, { foreignKey: "order_id" });
-    // Cards.hasMany(Comments,  {foreignKey: 'card_id'})
+
+    newOrder
+      .findAll({
+        where: {
+          order_id: 77,
+        },
+        include: [
+          {
+            model: orderItems,
+            // attributes: ["id"],
+            required: false,
+          },
+          //   {
+          //   model: Comments,
+          //   required: true,
+          //  },
+        ],
+      })
+      .then((orders) => {
+        res.status(201).json({
+          message: orders,
+        });
+        //   let newOrders = orders;
+
+        //   var orderIds = orders.map((order) => {
+        //     // console.log(result.challenge_id)
+        //     return order.order_id;
+        //   });
+
+        //   orderItems
+        //     .findAll({
+        //       where: {
+        //         order_id: orderIds,
+        //       },
+        //     })
+        //     .then((result) => {
+        //       orders = JSON.parse(JSON.stringify(orders));
+
+        //       res.status(201).json({
+        //         message: orders,
+        //       });
+        //     });
+      });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.get("/orders/:user_id", async (req, res) => {
+  try {
+    const user_id = req.params.user_id;
+    orderItems.belongsTo(Products, { foreignKey: "product_id" });
 
     newOrder
       .findAll({
         where: {
           user_id,
         },
-
-        include: [
-          {
-            model: orderItems,
-            attributes: ["product_id"],
-            required: false,
-          },
-        ],
       })
       .then((orders) => {
+        var orderIds = orders.map((order) => {
+          // console.log(result.challenge_id)
+          return order.order_id;
+        });
+        orderItems
+          .findAll({
+            where: {
+              order_id: orderIds,
+            },
+            include: [
+              {
+                model: Products,
+                required: false,
+              },
+            ],
+          })
+          .then((result) => {
+            res.status(201).json({
+              orders: result,
+            });
+          });
+      });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.get("/seperateOrders/:id", async (req, res) => {
+  try {
+    const user_id = 1;
+    const order_id = req.params.id;
+
+    orderItems
+      .findAll({
+        where: {
+          order_id,
+        },
+      })
+      .then((result) => {
         res.status(201).json({
-          message: orders,
+          orders: result,
         });
       });
   } catch (error) {
