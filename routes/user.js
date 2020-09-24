@@ -1547,4 +1547,22 @@ router.get("/seperateOrders/:id", async (req, res) => {
   }
 });
 
+router.get("/shop/product/:id", async (req, res) => {
+  try {
+    const productId = req.params.id;
+
+    Products.findOne({
+      where: {
+        id: productId,
+      },
+    }).then((product) => {
+      res.status(201).json({
+        product: product,
+      });
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 module.exports = router;
