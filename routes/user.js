@@ -1512,6 +1512,8 @@ router.get("/orders/:user_id", async (req, res) => {
             ],
           })
           .then((result) => {
+            result = result.reverse();
+
             res.status(201).json({
               orders: result,
             });
@@ -1534,6 +1536,8 @@ router.get("/seperateOrders/:id", async (req, res) => {
         },
       })
       .then((result) => {
+        result = result.reverse();
+
         res.status(201).json({
           orders: result,
         });
