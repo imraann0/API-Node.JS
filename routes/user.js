@@ -49,7 +49,7 @@ router.post("/register", async (req, res) => {
 
   //Check if username already in exists
   const userNameExists = await User.findOne({
-    where: { username: req.body.username },
+    where: { username: req.body.username }
   });
   if (userNameExists) return res.status(400).json("Username already Taken");
 
@@ -64,22 +64,22 @@ router.post("/register", async (req, res) => {
     last_name: req.body.last_name,
     dob: req.body.dob,
     username: req.body.username,
-    password: hashedPassword,
+    password: hashedPassword
   });
   //save the user to db & send result
   try {
-    const savedUser = await user.save().then(function (result) {
+    const savedUser = await user.save().then(function(result) {
       console.log(result);
       res.status(201).json({
         message: "User Created",
         // user: [result.id, result.first_name, result.last_name, result.email],
-        user: result,
+        user: result
       });
     });
   } catch (error) {
     console.log(error);
     res.status(400).json({
-      message: "user not created",
+      message: "user not created"
     });
   }
 });
@@ -90,37 +90,37 @@ router.post("/location", async (req, res) => {
 
   const userExisst = await Location.findOne({
     where: {
-      userId: req.body.id,
-    },
+      userId: req.body.id
+    }
   });
 
   if (userExisst) {
     Location.update(
       {
         long: req.body.long,
-        lat: req.body.lat,
+        lat: req.body.lat
       },
       {
         where: {
-          userId: req.body.id,
-        },
+          userId: req.body.id
+        }
       }
     )
-      .then((responseId) => {
+      .then(responseId => {
         res.json("updated");
         console.log("location Id!!!!!!!!!!!", responseId);
         User.update(
           {
-            locationId: userExisst.dataValues.id,
+            locationId: userExisst.dataValues.id
           },
           {
             where: {
-              id: req.body.id,
-            },
+              id: req.body.id
+            }
           }
         );
       })
-      .error(function (err) {
+      .error(function(err) {
         console.log("location update failed !", err);
       });
   } else {
@@ -128,21 +128,21 @@ router.post("/location", async (req, res) => {
     const location = new Location({
       userId: req.body.id,
       long: req.body.long,
-      lat: req.body.lat,
+      lat: req.body.lat
     });
     //save the user to db & send result
     try {
-      const savedLcoation = await location.save().then(function (result) {
+      const savedLcoation = await location.save().then(function(result) {
         res.json("new user location updated");
         console.log("new user location saved", result.dataValues);
         User.update(
           {
-            locationId: result.dataValues.id,
+            locationId: result.dataValues.id
           },
           {
             where: {
-              id: result.dataValues.userId,
-            },
+              id: result.dataValues.userId
+            }
           }
         );
       });
@@ -181,9 +181,9 @@ router.post("/login", async (req, res) => {
 
 router.get("/users", verify, (req, res) => {
   // get all users
-  User.findAll().then((users) => {
+  User.findAll().then(users => {
     res.status(200).json({
-      Usres: users,
+      Usres: users
     });
   });
 });
@@ -199,9 +199,9 @@ router.get("/logged", async (req, res) => {
     console.log(decoded.id);
 
     const user = await User.findOne({ where: { id: decoded.id } }).then(
-      (result) => {
+      result => {
         res.json({
-          User: result,
+          User: result
         });
       }
     );
@@ -215,16 +215,16 @@ router.get("/logged", async (req, res) => {
 router.post("/bio", async (req, res) => {
   const UpdatedBio = await User.update(
     {
-      bio: req.body.bio,
+      bio: req.body.bio
     },
     {
       where: {
-        id: req.body.id,
-      },
+        id: req.body.id
+      }
     }
-  ).then((response) => {
+  ).then(response => {
     res.json({
-      updatedBio: req.body.bio,
+      updatedBio: req.body.bio
     });
   });
 });
@@ -243,11 +243,11 @@ router.get("/friends/:id", async (req, res) => {
     Friends.findAll({
       where: {
         [Op.or]: [{ user_id1: user_id }, { user_id2: user_id }],
-        [Op.and]: [{ confirmed: 1 }],
-      },
-    }).then((friendslist) => {
+        [Op.and]: [{ confirmed: 1 }]
+      }
+    }).then(friendslist => {
       // returns all ids
-      var promise = friendslist.map((friend) => {
+      var promise = friendslist.map(friend => {
         var user_id1 = friend.dataValues.user_id1;
         var user_id2 = friend.dataValues.user_id2;
         return [user_id1, user_id2];
@@ -270,19 +270,19 @@ router.get("/friends/:id", async (req, res) => {
           "first_name",
           "last_name",
           "username",
-          "display_pic",
+          "display_pic"
         ],
         where: {
-          id: friendPendingIds,
-        },
-      }).then((friendlist) => {
+          id: friendPendingIds
+        }
+      }).then(friendlist => {
         console.log(friendlist);
         if (!friendlist || friendlist.length == 0) {
           console.log("NO FROENDS");
           res.status(400).json({ error: "No friends found " });
         } else {
           res.status(200).json({
-            message: friendlist,
+            message: friendlist
           });
         }
       });
@@ -305,11 +305,11 @@ router.get("/friends-pending/:id", async (req, res) => {
     Friends.findAll({
       where: {
         user_id2: user_id,
-        [Op.and]: [{ confirmed: 0 }],
-      },
-    }).then((friendslist) => {
+        [Op.and]: [{ confirmed: 0 }]
+      }
+    }).then(friendslist => {
       // returns all ids
-      var promise = friendslist.map((friend) => {
+      var promise = friendslist.map(friend => {
         var user_id1 = friend.dataValues.user_id1;
         var user_id2 = friend.dataValues.user_id2;
         return [user_id1, user_id2];
@@ -328,17 +328,17 @@ router.get("/friends-pending/:id", async (req, res) => {
           "first_name",
           "last_name",
           "username",
-          "display_pic",
+          "display_pic"
         ],
         where: {
-          id: friendPendingIds,
-        },
-      }).then((friendlist) => {
+          id: friendPendingIds
+        }
+      }).then(friendlist => {
         if (!friendlist || friendlist.length == 0) {
           res.status(400).json("No pending friends ");
         } else {
           res.status(200).json({
-            friends: friendlist,
+            friends: friendlist
           });
         }
       });
@@ -368,7 +368,7 @@ router.post("/friend-request", async (req, res) => {
         friend_id +
         ") ",
       {
-        type: QueryTypes.SELECT,
+        type: QueryTypes.SELECT
       }
     );
 
@@ -378,9 +378,9 @@ router.post("/friend-request", async (req, res) => {
       const friendRequest = new friends({
         user_id1: user_id,
         user_id2: friend_id,
-        confirmed: 0,
+        confirmed: 0
       });
-      const savedRequest = await friendRequest.save().then(function (result) {
+      const savedRequest = await friendRequest.save().then(function(result) {
         console.log(result);
         res.status(400).json("Request sent");
       });
@@ -393,9 +393,9 @@ router.post("/friend-request", async (req, res) => {
     else if (requestExists[0].user_id1 === user_id) {
       Friends.destroy({
         where: {
-          id: requestExists[0].id,
-        },
-      }).then((response) => {
+          id: requestExists[0].id
+        }
+      }).then(response => {
         res.status(204).json("Request deleted");
       });
     }
@@ -422,8 +422,8 @@ router.post("/friend-accept", async (req, res) => {
       where: {
         user_id1: friend_id,
         user_id2: user_id,
-        [Op.and]: [{ confirmed: 0 }],
-      },
+        [Op.and]: [{ confirmed: 0 }]
+      }
     });
 
     // if no friend request found then it returns the message
@@ -434,14 +434,14 @@ router.post("/friend-accept", async (req, res) => {
     if (friendRequested) {
       Friends.update(
         {
-          confirmed: 1,
+          confirmed: 1
         },
         {
           where: {
-            id: friendRequested.id,
-          },
+            id: friendRequested.id
+          }
         }
-      ).then((response) => {
+      ).then(response => {
         res.status(201).json("Friend accepted");
       });
     }
@@ -464,8 +464,8 @@ router.post("/friend-reject", async (req, res) => {
       where: {
         user_id1: friend_id,
         user_id2: user_id,
-        [Op.and]: [{ confirmed: 0 }],
-      },
+        [Op.and]: [{ confirmed: 0 }]
+      }
     });
 
     // if no friend request found then it returns the message
@@ -476,9 +476,9 @@ router.post("/friend-reject", async (req, res) => {
     if (friendRequested) {
       Friends.destroy({
         where: {
-          id: friendRequested.id,
-        },
-      }).then((response) => {
+          id: friendRequested.id
+        }
+      }).then(response => {
         console.log("here");
         res.json("Request deleted");
       });
@@ -510,7 +510,7 @@ router.post("/unfriend", async (req, res) => {
         friend_id +
         ") AND (confirmed = 1 ) ",
       {
-        type: QueryTypes.SELECT,
+        type: QueryTypes.SELECT
       }
     );
 
@@ -522,9 +522,9 @@ router.post("/unfriend", async (req, res) => {
     if (friendExists) {
       Friends.destroy({
         where: {
-          id: friendExists[0].id,
-        },
-      }).then((response) => {
+          id: friendExists[0].id
+        }
+      }).then(response => {
         // return res.status(204).json(" friend removed ");
         res.json("friend removed");
       });
@@ -548,18 +548,18 @@ router.post("/create-challenge", async (req, res) => {
         user_id,
         type,
         date,
-        content,
+        content
       });
-      const savedChallenge = await challenge.save().then(function (result) {
+      const savedChallenge = await challenge.save().then(function(result) {
         res.status(201).json("challenge made");
         return result;
       });
       const challengeUsers = new Challengeusers({
         challenge_id: savedChallenge.dataValues.id,
         user_id,
-        status: 1,
+        status: 1
       });
-      await challengeUsers.save().error(function (err) {
+      await challengeUsers.save().error(function(err) {
         console.log(err);
       });
     }
@@ -567,20 +567,20 @@ router.post("/create-challenge", async (req, res) => {
     const challengeExists = await Challengeusers.findAll({
       where: {
         user_id,
-        status: 1,
-      },
-    }).then((challenges) => {
-      var promise = challenges.map((result) => {
+        status: 1
+      }
+    }).then(challenges => {
+      var promise = challenges.map(result => {
         // console.log(result.challenge_id)
         return result.challenge_id;
       });
 
       Challenges.findAll({
         where: {
-          id: promise,
-        },
-      }).then((challenges) => {
-        var promise2 = challenges.map((challenge) => {
+          id: promise
+        }
+      }).then(challenges => {
+        var promise2 = challenges.map(challenge => {
           return [challenge.type, challenge.date];
         });
 
@@ -617,8 +617,8 @@ router.post("/invite-user-challenge", async (req, res) => {
     const ChallengeSent = await Challengeusers.findOne({
       where: {
         user_id: friend_id,
-        challenge_id,
-      },
+        challenge_id
+      }
     });
 
     if (ChallengeSent == undefined || ChallengeSent.length == 0) {
@@ -626,11 +626,11 @@ router.post("/invite-user-challenge", async (req, res) => {
         user_id: friend_id,
         challenge_id,
         sent_id: user_id,
-        status: 0,
+        status: 0
       });
       const savedInvte = await inviteUserToChallenge
         .save()
-        .then(function (result) {
+        .then(function(result) {
           res.status(201).json("Invite sent");
         });
     }
@@ -643,9 +643,9 @@ router.post("/invite-user-challenge", async (req, res) => {
     else if (ChallengeSent.dataValues.sent_id === user_id) {
       Challengeusers.destroy({
         where: {
-          id: ChallengeSent.id,
-        },
-      }).then((response) => {
+          id: ChallengeSent.id
+        }
+      }).then(response => {
         res.json("Invite deleted");
       });
     }
@@ -675,8 +675,8 @@ router.post("/challenge-accept/:userId/:challengeId", async (req, res) => {
       where: {
         user_id,
         status: 0,
-        challenge_id,
-      },
+        challenge_id
+      }
     });
 
     console.log(challengeRequest);
@@ -690,14 +690,14 @@ router.post("/challenge-accept/:userId/:challengeId", async (req, res) => {
     if (challengeRequest) {
       Challengeusers.update(
         {
-          status: 1,
+          status: 1
         },
         {
           where: {
-            id: challengeRequest.dataValues.id,
-          },
+            id: challengeRequest.dataValues.id
+          }
         }
-      ).then((response) => {
+      ).then(response => {
         res.status(201).json("Challenge accepted");
       });
     }
@@ -720,8 +720,8 @@ router.post("/challenge-decline/:userId/:challengeId", async (req, res) => {
       where: {
         user_id,
         status: 0,
-        challenge_id,
-      },
+        challenge_id
+      }
     });
 
     // if no challenge request found then it returns the message
@@ -733,9 +733,9 @@ router.post("/challenge-decline/:userId/:challengeId", async (req, res) => {
     if (challengeRequest) {
       Challengeusers.destroy({
         where: {
-          id: challengeRequest.dataValues.id,
-        },
-      }).then((response) => {
+          id: challengeRequest.dataValues.id
+        }
+      }).then(response => {
         res.status(204).json("Challenge declined");
       });
     }
@@ -758,7 +758,7 @@ router.get("/challenges/:id", async (req, res) => {
     const challengeExists = await Challengeusers.findAll({
       where: {
         user_id: id,
-        status: 1,
+        status: 1
       },
       include: [
         {
@@ -769,22 +769,22 @@ router.get("/challenges/:id", async (req, res) => {
             "date",
             "type",
             "createdAt",
-            "UpdatedAt",
+            "UpdatedAt"
           ],
-          required: true,
+          required: true
         },
         {
           model: User,
           attributes: ["id", "first_name", "username", "display_pic"],
-          required: true,
-        },
-      ],
-    }).then((challenges) => {
+          required: true
+        }
+      ]
+    }).then(challenges => {
       if (!challenges || challenges.length == 0) {
         res.status(400).json("no challenge found");
       } else {
         res.status(200).json({
-          challenges,
+          challenges
         });
       }
     });
@@ -807,22 +807,22 @@ router.get("/users-in-challenge", async (req, res) => {
     const challengeExists = await Challengeusers.findAll({
       where: {
         challenge_id,
-        status: 1,
+        status: 1
       },
       attributes: ["id"],
       include: [
         {
           model: User,
           attributes: ["first_name", "username", "display_pic"],
-          required: true,
-        },
-      ],
-    }).then((usersInChallenge) => {
+          required: true
+        }
+      ]
+    }).then(usersInChallenge => {
       if (!usersInChallenge || usersInChallenge.length == 0) {
         res.status(400).json("no users in challenge");
       } else {
         res.status(200).json({
-          message: usersInChallenge,
+          message: usersInChallenge
         });
       }
     });
@@ -865,7 +865,7 @@ router.get("/challenges-pending/:id", async (req, res) => {
     Challengeusers.findAll({
       where: {
         user_id,
-        status: 0,
+        status: 0
       },
       include: [
         {
@@ -876,17 +876,17 @@ router.get("/challenges-pending/:id", async (req, res) => {
             "date",
             "type",
             "createdAt",
-            "UpdatedAt",
+            "UpdatedAt"
           ],
-          required: true,
+          required: true
         },
         {
           model: User,
           attributes: ["first_name", "username", "display_pic"],
-          required: true,
-        },
-      ],
-    }).then((challengesPending) => {
+          required: true
+        }
+      ]
+    }).then(challengesPending => {
       if (!challengesPending || challengesPending.length == 0) {
         res.status(400).json("No Pending Challenges");
       } else {
@@ -1023,14 +1023,14 @@ router.get("/user-profile/:username", async (req, res) => {
         "display_pic",
         "bio",
         "trophy_level",
-        "emaan_level",
+        "emaan_level"
       ],
       where: {
-        username: username,
-      },
-    }).then((response) => {
+        username: username
+      }
+    }).then(response => {
       res.status(200).json({
-        message: response,
+        message: response
       });
     });
   } catch (error) {
@@ -1107,9 +1107,9 @@ router.post("/card", async (req, res) => {
     async function createCard() {
       const card = new Cards({
         user_id: req.body.user_id,
-        content: req.body.content,
+        content: req.body.content
       });
-      const savedCard = await card.save().then(function (result) {
+      const savedCard = await card.save().then(function(result) {
         res.status(201).json("card made");
         return result;
       });
@@ -1136,17 +1136,17 @@ router.get("/cards", async (req, res) => {
         {
           model: User,
           attributes: ["first_name", "username", "display_pic"],
-          required: true,
-        },
+          required: true
+        }
         //   {
         //   model: Comments,
         //   required: true,
         //  },
-      ],
-    }).then((cards) => {
+      ]
+    }).then(cards => {
       cards = cards.reverse();
       res.status(200).json({
-        message: cards,
+        message: cards
       });
     });
   } catch (error) {
@@ -1166,12 +1166,12 @@ router.get("/cards/:userId", async (req, res) => {
 
     Cards.findAll({
       where: {
-        user_id,
-      },
-    }).then((cards) => {
+        user_id
+      }
+    }).then(cards => {
       cards = cards.reverse();
       res.status(200).json({
-        cards,
+        cards
       });
     });
   } catch (error) {
@@ -1197,16 +1197,16 @@ router.get("/cards/comment/:id", async (req, res) => {
         {
           model: User,
           attributes: ["first_name", "username", "display_pic"],
-          required: true,
-        },
-      ],
-    }).then((comments) => {
+          required: true
+        }
+      ]
+    }).then(comments => {
       comments = comments.reverse();
       var length = comments.length;
 
       res.json({
         comments: comments,
-        length,
+        length
       });
     });
   } catch (error) {
@@ -1229,33 +1229,33 @@ router.post("/comment/:card_id", async (req, res) => {
     const comment = new Comments({
       user_id,
       content,
-      card_id,
+      card_id
     });
-    const savedComment = await comment.save().then(function (result) {
+    const savedComment = await comment.save().then(function(result) {
       // res.status(201).json('comment made')
       return result;
     });
 
     await Comments.findAll({
       where: {
-        card_id: savedComment.dataValues.card_id,
-      },
-    }).then((comments) => {
+        card_id: savedComment.dataValues.card_id
+      }
+    }).then(comments => {
       var commentsAmount = comments.length;
       var card_id = savedComment.dataValues.card_id;
 
       Cards.update(
         {
-          comments: commentsAmount,
+          comments: commentsAmount
         },
         {
           where: {
-            id: card_id,
-          },
+            id: card_id
+          }
         }
-      ).then((response) => {
+      ).then(response => {
         res.status(201).json({
-          message: "Comment Made",
+          message: "Comment Made"
         });
       });
     });
@@ -1275,28 +1275,28 @@ router.post("/like/:card_id", async (req, res) => {
     async function createLike() {
       const like = new Likes({
         user_id,
-        card_id,
+        card_id
       });
-      const savedLike = await like.save().then(function (result) {
+      const savedLike = await like.save().then(function(result) {
         Likes.findAll({
           where: {
-            card_id,
-          },
-        }).then((likes) => {
+            card_id
+          }
+        }).then(likes => {
           var likesAmount = likes.length;
 
           Cards.update(
             {
-              likes: likesAmount,
+              likes: likesAmount
             },
             {
               where: {
-                id: card_id,
-              },
+                id: card_id
+              }
             }
-          ).then((response) => {
+          ).then(response => {
             res.status(201).json({
-              message: "Like Made",
+              message: "Like Made"
             });
           });
         });
@@ -1306,37 +1306,37 @@ router.post("/like/:card_id", async (req, res) => {
     await Likes.findOne({
       where: {
         card_id,
-        user_id,
-      },
-    }).then((likes) => {
+        user_id
+      }
+    }).then(likes => {
       if (!likes || likes.length === 0) {
         createLike();
       } else if (likes.id) {
         Likes.destroy({
           where: {
-            id: likes.id,
-          },
+            id: likes.id
+          }
         });
 
         Likes.findAll({
           where: {
-            card_id,
-          },
-        }).then((likes) => {
+            card_id
+          }
+        }).then(likes => {
           var likesAmount = likes.length;
 
           Cards.update(
             {
-              likes: likesAmount,
+              likes: likesAmount
             },
             {
               where: {
-                id: card_id,
-              },
+                id: card_id
+              }
             }
-          ).then((response) => {
+          ).then(response => {
             res.status(201).json({
-              message: "Unliked",
+              message: "Unliked"
             });
           });
         });
@@ -1359,12 +1359,38 @@ router.get("/books", async (req, res) => {
 
     Products.findAll({
       where: {
-        categorie: 1,
-      },
-    }).then((books) => {
+        categorie: 1
+      }
+    }).then(books => {
       books = books.reverse();
       res.status(200).json({
-        books,
+        books
+      });
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.get("/shop/category/:id", async (req, res) => {
+  try {
+    // const user_id = req.body.user_id;
+    const user_id = req.params.userId;
+    const categorie = req.params.id;
+
+    // // if (!user_id) return res.status(400).json("user not logged in");
+
+    // Cards.belongsTo(User, { foreignKey: "user_id" });
+    // // Cards.hasMany(Comments,  {foreignKey: 'card_id'})
+
+    Products.findAll({
+      where: {
+        categorie
+      }
+    }).then(products => {
+      products = products.reverse();
+      res.status(200).send({
+        products
       });
     });
   } catch (error) {
@@ -1379,11 +1405,11 @@ router.post("/payments/create", async (req, res) => {
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: total,
-      currency: "gbp",
+      currency: "gbp"
     });
 
     res.status(201).send({
-      clientSecret: paymentIntent.client_secret,
+      clientSecret: paymentIntent.client_secret
     });
   } catch (error) {
     console.log("error from server", error);
@@ -1396,16 +1422,16 @@ router.post("/order", async (req, res) => {
       const order = new newOrder({
         user_id: req.body.user_id,
         order_id: req.body.order_id,
-        ammount: req.body.ammount,
+        ammount: req.body.ammount
       });
-      const savedNewOrder = await order.save().then(function (result) {
+      const savedNewOrder = await order.save().then(function(result) {
         // return result;
       });
     }
     async function createNewOrderItem() {
       basket = req.body.basket;
 
-      basket.map((basketItem) => {
+      basket.map(basketItem => {
         console.log(basketItem.id);
 
         const savedOrderItems = new orderItems({
@@ -1414,10 +1440,10 @@ router.post("/order", async (req, res) => {
           image: basketItem.image,
           price: basketItem.price,
           rating: basketItem.rating,
-          categorie: basketItem.categorie,
+          categorie: basketItem.categorie
         });
 
-        const savedNewOrder = savedOrderItems.save().then(function (result) {
+        const savedNewOrder = savedOrderItems.save().then(function(result) {
           // return result;
         });
       });
@@ -1439,23 +1465,23 @@ router.get("/orders2", async (req, res) => {
     newOrder
       .findAll({
         where: {
-          order_id: 77,
+          order_id: 77
         },
         include: [
           {
             model: orderItems,
             // attributes: ["id"],
-            required: false,
-          },
+            required: false
+          }
           //   {
           //   model: Comments,
           //   required: true,
           //  },
-        ],
+        ]
       })
-      .then((orders) => {
+      .then(orders => {
         res.status(201).json({
-          message: orders,
+          message: orders
         });
         //   let newOrders = orders;
 
@@ -1491,31 +1517,31 @@ router.get("/orders/:user_id", async (req, res) => {
     newOrder
       .findAll({
         where: {
-          user_id,
-        },
+          user_id
+        }
       })
-      .then((orders) => {
-        var orderIds = orders.map((order) => {
+      .then(orders => {
+        var orderIds = orders.map(order => {
           // console.log(result.challenge_id)
           return order.order_id;
         });
         orderItems
           .findAll({
             where: {
-              order_id: orderIds,
+              order_id: orderIds
             },
             include: [
               {
                 model: Products,
-                required: false,
-              },
-            ],
+                required: false
+              }
+            ]
           })
-          .then((result) => {
+          .then(result => {
             result = result.reverse();
 
             res.status(201).json({
-              orders: result,
+              orders: result
             });
           });
       });
@@ -1532,14 +1558,14 @@ router.get("/seperateOrders/:id", async (req, res) => {
     orderItems
       .findAll({
         where: {
-          order_id,
-        },
+          order_id
+        }
       })
-      .then((result) => {
+      .then(result => {
         result = result.reverse();
 
         res.status(201).json({
-          orders: result,
+          orders: result
         });
       });
   } catch (error) {
@@ -1553,11 +1579,11 @@ router.get("/shop/product/:id", async (req, res) => {
 
     Products.findOne({
       where: {
-        id: productId,
-      },
-    }).then((product) => {
+        id: productId
+      }
+    }).then(product => {
       res.status(201).json({
-        product: product,
+        product: product
       });
     });
   } catch (error) {
