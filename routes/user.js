@@ -28,6 +28,7 @@ const cards = require("../models/cards");
 const Products = require("../models/products");
 const newOrder = require("../models/newOrder");
 const orderItems = require("../models/orderItems");
+const productImage = require("../models/productImages");
 
 const stripe = require("stripe")(
   "sk_test_51HTwftB4BEDe4p7rCZpSriogpWiBXa3HFwMW6hhxsfynupWEDYRETBGWXePjN5lQKiN8wXPCYgE1g0q62abYfyE400AVHOENnM"
@@ -1393,6 +1394,28 @@ router.get("/shop/category/:id", async (req, res) => {
         products
       });
     });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.get("/shop/productImage/:id", async (req, res) => {
+  try {
+    const product_id = req.params.id;
+
+    productImage
+      .findAll({
+        where: {
+          product_id
+        }
+      })
+      .then(image => {
+        res.status(200).send({
+          image
+        });
+      });
+
+    //get all images that have the same product id
   } catch (error) {
     console.log(error);
   }

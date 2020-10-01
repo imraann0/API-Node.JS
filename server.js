@@ -10,9 +10,9 @@ app.use(cors());
 app.options("*", cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use(function (req, res, next) {
+app.use(function(req, res, next) {
   // Website you wish to allow to connect
-  // res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001')
+  //res.setHeader("Access-Control-Allow-Origin", "http://localhost:3001");
   res.setHeader("Access-Control-Allow-Origin", "https://imraann0.co.uk");
 
   // Request methods you wish to allow
@@ -41,7 +41,7 @@ const db = require("./database/db");
 
 db.authenticate()
   .then(() => console.log("connected to db!"))
-  .catch((err) => console.log("Error:" + err));
+  .catch(err => console.log("Error:" + err));
 
 // import routes
 userRoute = require("./routes/user");
