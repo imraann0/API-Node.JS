@@ -6,16 +6,16 @@ module.exports = db.define("productimages", {
     type: Sequelize.INTEGER,
     allowNull: false,
     primaryKey: true,
-    autoIncrement: true
+    autoIncrement: true,
   },
 
   product_id: {
     type: Sequelize.INTEGER,
-    allowNull: false
+    allowNull: false,
   },
 
   image_url: {
     type: Sequelize.STRING,
-    allowNull: false
-  }
+    allowNull: true,
+  },
 });
