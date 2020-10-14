@@ -29,14 +29,46 @@ const Products = require("../models/products");
 const newOrder = require("../models/newOrder");
 const orderItems = require("../models/orderItems");
 const productImage = require("../models/productImages");
+const products = require("../models/products");
 
 const stripe = require("stripe")(
   "sk_test_51HTwftB4BEDe4p7rCZpSriogpWiBXa3HFwMW6hhxsfynupWEDYRETBGWXePjN5lQKiN8wXPCYgE1g0q62abYfyE400AVHOENnM"
 );
 
-// router.get('/', (req, res) => {
-//   console.log("server is runing")
-// })
+function paginatedResults(model) {
+  return (req, res, next) => {
+    const page = parseInt(req.params.page);
+    const limit = parseInt(req.params.limit);
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const results = {};
+
+    // get all users
+    model.findAll().then((users) => {
+      if (endIndex < users.length) {
+        results.next = {
+          page: page + 1,
+          limit: limit,
+        };
+      }
+      if (startIndex > 0) {
+        results.previous = {
+          page: page - 1,
+          limit: limit,
+        };
+      }
+
+      results.results = users.slice(startIndex, endIndex);
+      res.paginatedResults = results;
+      next();
+      // res.status(200).json({
+      //   message: results,
+      // });
+    });
+  };
+}
 
 router.post("/register", async (req, res) => {
   console.log(req.body);
@@ -180,11 +212,75 @@ router.post("/login", async (req, res) => {
   console.log(token);
 });
 
-router.get("/users", verify, (req, res) => {
+// router.get(
+//   "/users/:page/:limit",
+//   paginatedResults(User),
+//   verify,
+//   (req, res) => {
+//     res.json(res.paginatedResults);
+
+// const page = parseInt(req.params.page);
+// const limit = parseInt(req.params.limit);
+
+// const startIndex = (page - 1) * limit;
+// const endIndex = page * limit;
+
+// const results = {};
+
+// // get all users
+// User.findAll().then((users) => {
+//   if (endIndex < users.length) {
+//     results.next = {
+//       page: page + 1,
+//       limit: limit,
+//     };
+//   }
+//   if (startIndex > 0) {
+//     results.previous = {
+//       page: page - 1,
+//       limit: limit,
+//     };
+//   }
+
+//   results.results = users.slice(startIndex, endIndex);
+//   res.status(200).json({
+//     message: results,
+//   });
+// });
+//   }
+// );
+
+router.get("/users/:page/:limit", verify, (req, res) => {
+  const page = parseInt(req.params.page);
+  const limit = parseInt(req.params.limit);
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const results = {};
+
   // get all users
   User.findAll().then((users) => {
+    if (endIndex < users.length) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+    if (startIndex > 0) {
+      results.previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+    // const include = users.include((word) => word.length > 6);
+    // console.log(include);
+
+    results.results = users.slice(startIndex, endIndex);
+
     res.status(200).json({
-      Usres: users,
+      message: include,
     });
   });
 });
@@ -1579,8 +1675,17 @@ router.get("/seperateOrders/:id", async (req, res) => {
     const user_id = 1;
     const order_id = req.params.id;
 
+    orderItems.belongsTo(Products, { foreignKey: "product_id" });
+
     orderItems
       .findAll({
+        include: [
+          {
+            model: Products,
+            // attributes: ["first_name", "username", "display_pic"],
+            required: true,
+          },
+        ],
         where: {
           order_id,
         },
